@@ -1,0 +1,252 @@
+---
+title: License Commands
+description: Tauri commands for managing VoiceTypr licenses and trial status
+---
+
+## Overview
+
+VoiceTypr uses a license and trial system to manage access to the application. These commands handle license validation, activation, and trial status checking.
+
+The license system supports:
+- **Trial mode**: Limited-time free trial with offline grace period
+- **Licensed mode**: Activated with a valid license key
+- **Offline grace periods**: 90 days for licensed users, 1 day for trial users
+- **Secure storage**: License keys stored in system keychain (macOS Keychain, Windows Credential Manager)
+
+## License Status
+
+### check_license_status
+
+Check the current license or trial status.
+
+```typescript
+import { invoke } from '@tauri-apps/api/core';
+import type { LicenseStatus } from '@/types';
+
+const status = await invoke<LicenseStatus>('check_license_status');
+```
+
+**Returns**: `LicenseStatus`
+
+```typescript
+interface LicenseStatus {
+  status: 'licensed' | 'trial' | 'expired' | 'none';
+  trial_days_left?: number;
+  license_type?: string;
+  license_key?: string;
+  expires_at?: string;
+}
+```
+
+<ResponseField name="status" type="string" required>
+  Current license state: `licensed`, `trial`, `expired`, or `none`
+</ResponseField>
+
+<ResponseField name="trial_days_left" type="number">
+  Days remaining in trial period (only present for trial status)
+</ResponseField>
+
+<ResponseField name="license_type" type="string">
+  Type of license (e.g., "individual", "team")
+</ResponseField>
+
+<ResponseField name="license_key" type="string">
+  The license key (only present for licensed status)
+</ResponseField>
+
+<ResponseField name="expires_at" type="string">
+  ISO 8601 expiration date (if license has expiration)
+</ResponseField>
+
+**Caching**: Status is cached for 8 hours to reduce API calls. Cache is validated against offline grace periods.
+
+**Example**:
+
+```typescript
+const status = await invoke<LicenseStatus>('check_license_status');
+
+if (status.status === 'trial') {
+  console.log(`Trial expires in ${status.trial_days_left} days`);
+} else if (status.status === 'licensed') {
+  console.log(`Licensed with key: ${status.license_key}`);
+} else if (status.status === 'expired') {
+  console.log('License or trial has expired');
+}
+```
+
+## License Activation
+
+### activate_license
+
+Activate VoiceTypr with a license key.
+
+```typescript
+await invoke('activate_license', {
+  licenseKey: 'YOUR-LICENSE-KEY'
+});
+```
+
+<ParamField path="licenseKey" type="string" required>
+  The license key to activate
+</ParamField>
+
+**Returns**: `LicenseStatus` - Updated license status after activation
+
+**Errors**:
+- `"Invalid license key format"` - Key format is invalid
+- `"License key already in use"` - Key is activated on another device
+- `"Invalid license key"` - Key is not valid or has been revoked
+- `"Network error"` - Cannot reach license server
+
+**Example**:
+
+```typescript
+try {
+  const status = await invoke<LicenseStatus>('activate_license', {
+    licenseKey: 'VT-XXXX-XXXX-XXXX-XXXX'
+  });
+  
+  console.log('License activated successfully');
+  console.log(`License type: ${status.license_type}`);
+} catch (error) {
+  console.error('Activation failed:', error);
+}
+```
+
+### deactivate_license
+
+Deactivate the current license on this device.
+
+```typescript
+await invoke('deactivate_license');
+```
+
+**Returns**: `void`
+
+**Note**: This frees up the license activation slot, allowing the key to be used on another device.
+
+**Example**:
+
+```typescript
+try {
+  await invoke('deactivate_license');
+  console.log('License deactivated successfully');
+} catch (error) {
+  console.error('Deactivation failed:', error);
+}
+```
+
+### restore_license
+
+Restore a previously activated license from system keychain.
+
+```typescript
+const status = await invoke<LicenseStatus>('restore_license');
+```
+
+**Returns**: `LicenseStatus` - Restored license status
+
+**Use case**: Restore license after reinstalling VoiceTypr or if license cache was cleared.
+
+**Example**:
+
+```typescript
+try {
+  const status = await invoke<LicenseStatus>('restore_license');
+  
+  if (status.status === 'licensed') {
+    console.log('License restored successfully');
+  } else {
+    console.log('No license found to restore');
+  }
+} catch (error) {
+  console.error('Restore failed:', error);
+}
+```
+
+## Cache Management
+
+### invalidate_license_cache
+
+Clear the cached license status to force a fresh check.
+
+```typescript
+await invoke('invalidate_license_cache');
+```
+
+**Returns**: `void`
+
+**Use case**: Force revalidation after purchasing a license or if status appears incorrect.
+
+**Example**:
+
+```typescript
+// After purchasing a license
+await invoke('invalidate_license_cache');
+const freshStatus = await invoke<LicenseStatus>('check_license_status');
+```
+
+## Purchase
+
+### open_purchase_page
+
+Open the VoiceTypr purchase page in the default browser.
+
+```typescript
+await invoke('open_purchase_page');
+```
+
+**Returns**: `void`
+
+**Example**:
+
+```typescript
+// Show purchase option when trial expires
+const status = await invoke<LicenseStatus>('check_license_status');
+
+if (status.status === 'expired') {
+  await invoke('open_purchase_page');
+}
+```
+
+## Offline Grace Periods
+
+VoiceTypr includes offline grace periods to allow continued use when internet is unavailable:
+
+- **Licensed users**: 90 days offline grace period
+- **Trial users**: 1 day offline grace period
+
+During the grace period, the last known valid status is used. Once the grace period expires, VoiceTypr requires internet connection to revalidate.
+
+## Trial System
+
+The trial system provides:
+- Free trial period (typically 7-14 days)
+- Limited offline validation (1 day grace period)
+- Automatic expiration tracking
+- Seamless upgrade to licensed mode
+
+**Trial expiration**:
+
+```typescript
+const status = await invoke<LicenseStatus>('check_license_status');
+
+if (status.status === 'trial' && status.trial_days_left !== undefined) {
+  if (status.trial_days_left <= 3) {
+    console.log('Trial expiring soon!');
+  }
+}
+```
+
+## Security
+
+License keys are stored securely using platform-native keychains:
+- **macOS**: Keychain Access
+- **Windows**: Credential Manager
+
+Keys are never stored in plain text or in application settings.
+
+## See Also
+
+- [useLicenseStatus Hook](/api/hooks/license) - React hook for license management
+- [Settings Commands](/api/commands/settings) - General settings management

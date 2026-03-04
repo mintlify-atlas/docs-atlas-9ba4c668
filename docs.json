@@ -107,7 +107,8 @@
               "api/commands/audio",
               "api/commands/model",
               "api/commands/ai",
-              "api/commands/settings"
+              "api/commands/settings",
+              "api/commands/license"
             ]
           },
           {
@@ -115,7 +116,8 @@
             "pages": [
               "api/hooks/recording",
               "api/hooks/model-management",
-              "api/hooks/permissions"
+              "api/hooks/permissions",
+              "api/hooks/license"
             ]
           }
         ]

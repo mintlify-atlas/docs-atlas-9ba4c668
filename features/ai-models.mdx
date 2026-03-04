@@ -9,12 +9,15 @@ VoiceTypr supports multiple AI transcription engines with various model sizes to
 
 ## Supported Engines
 
-<CardGroup cols={2}>
+<CardGroup cols={3}>
   <Card title="Whisper" icon="robot">
     OpenAI's Whisper models provide excellent accuracy across 99+ languages with multiple size options.
   </Card>
   <Card title="Parakeet" icon="bird">
     NVIDIA Parakeet models optimized for Apple Silicon, offering fast transcription using the Neural Engine.
+  </Card>
+  <Card title="Soniox" icon="cloud">
+    Cloud-based speech recognition API offering fast, accurate transcription without local model downloads.
   </Card>
 </CardGroup>
 
@@ -153,6 +156,84 @@ Parakeet models are available on **macOS only** and leverage Apple's Neural Engi
 <Warning>
   Parakeet models are macOS-exclusive and require an Apple Silicon Mac (M1, M2, M3, or newer). They will not run on Intel Macs or other platforms.
 </Warning>
+
+## Soniox Cloud Models
+
+Soniox is a **cloud-based** speech recognition service that provides fast, accurate transcription without requiring local model downloads.
+
+### Overview
+
+Unlike Whisper and Parakeet which run entirely on your device, Soniox processes audio in the cloud:
+
+- **No downloads required**: No disk space needed for models
+- **Fast transcription**: Cloud processing with optimized infrastructure
+- **Requires internet**: Audio is sent to Soniox API for processing
+- **API key required**: You need a Soniox account and API key
+
+### Setup
+
+To use Soniox models:
+
+<Steps>
+  <Step title="Get API Key">
+    Sign up at [soniox.com](https://soniox.com) and obtain an API key
+  </Step>
+  
+  <Step title="Configure in VoiceTypr">
+    Add your API key in Settings → Models → Soniox Configuration
+  </Step>
+  
+  <Step title="Select Soniox Model">
+    Choose a Soniox model from the Models tab
+  </Step>
+</Steps>
+
+### Available Models
+
+Soniox offers several optimized models:
+
+- **stt-async-v3**: Latest asynchronous model with best accuracy
+- **stt-streaming**: Real-time streaming transcription
+- **stt-multilingual**: Support for multiple languages
+
+<Info>
+  Check the [Soniox documentation](https://soniox.com/docs) for the latest available models and language support.
+</Info>
+
+### Privacy Considerations
+
+<Warning>
+  When using Soniox, audio is sent to Soniox servers for processing. This differs from Whisper and Parakeet which process entirely offline on your device.
+  
+  Only use Soniox if you're comfortable with cloud-based processing of your audio.
+</Warning>
+
+### Performance
+
+Soniox typically provides:
+- **Speed**: Very fast, limited by network latency
+- **Accuracy**: High accuracy comparable to Whisper Large
+- **Cost**: Based on Soniox API pricing
+
+### API Key Storage
+
+Soniox API keys are stored securely in your system keychain:
+- **macOS**: Keychain Access
+- **Windows**: Credential Manager
+
+The key is never stored in plain text.
+
+### Validation
+
+VoiceTypr validates your Soniox API key by:
+
+```typescript
+await invoke('validate_and_cache_soniox_key', {
+  apiKey: 'your-soniox-api-key'
+});
+```
+
+The validation checks against Soniox's `/v1/models` endpoint to verify the key is active.
 
 ## Hardware Acceleration
 

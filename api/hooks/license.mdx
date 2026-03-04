@@ -1,0 +1,304 @@
+---
+title: useLicenseStatus Hook
+description: React hook for managing VoiceTypr license and trial status
+---
+
+## Overview
+
+The `useLicenseStatus` hook provides a convenient way to manage and monitor VoiceTypr's license and trial status in React components. It wraps the License Context and provides derived state for common license checks.
+
+## Import
+
+```typescript
+import { useLicenseStatus } from '@/hooks/useLicenseStatus';
+```
+
+## Usage
+
+```typescript
+function MyComponent() {
+  const { 
+    licenseStatus, 
+    isValid, 
+    isChecking, 
+    checkLicense 
+  } = useLicenseStatus();
+
+  return (
+    <div>
+      {isChecking ? (
+        <p>Checking license...</p>
+      ) : isValid ? (
+        <p>License active</p>
+      ) : (
+        <p>No active license</p>
+      )}
+    </div>
+  );
+}
+```
+
+## Return Values
+
+The hook returns an object with the following properties:
+
+<ResponseField name="licenseStatus" type="LicenseStatus | null">
+  Current license status object, or `null` if not yet loaded
+</ResponseField>
+
+<ResponseField name="isValid" type="boolean">
+  Computed boolean indicating if user has valid access (trial or licensed)
+</ResponseField>
+
+<ResponseField name="isChecking" type="boolean">
+  True while license status is being checked from the backend
+</ResponseField>
+
+<ResponseField name="checkLicense" type="() => Promise<void>">
+  Function to manually trigger a license status check
+</ResponseField>
+
+## LicenseStatus Type
+
+```typescript
+interface LicenseStatus {
+  status: 'active' | 'trial' | 'expired' | 'none';
+  trial_days_left?: number;
+  license_type?: string;
+  license_key?: string;
+  expires_at?: string;
+}
+```
+
+<Note>
+The `status` field uses `'active'` in the frontend (mapped from `'licensed'` in backend) for consistency with UI state naming.
+</Note>
+
+## Examples
+
+### Display Trial Countdown
+
+```typescript
+function TrialBanner() {
+  const { licenseStatus, isValid } = useLicenseStatus();
+
+  if (licenseStatus?.status === 'trial' && licenseStatus.trial_days_left) {
+    return (
+      <div className="trial-banner">
+        {licenseStatus.trial_days_left} days left in trial
+      </div>
+    );
+  }
+
+  return null;
+}
+```
+
+### Conditional Feature Access
+
+```typescript
+function PremiumFeature() {
+  const { isValid, licenseStatus } = useLicenseStatus();
+
+  if (!isValid) {
+    return (
+      <div className="locked-feature">
+        <p>This feature requires an active license</p>
+        <button onClick={() => invoke('open_purchase_page')}>
+          Purchase License
+        </button>
+      </div>
+    );
+  }
+
+  return <div>Premium feature content...</div>;
+}
+```
+
+### Manual License Check
+
+```typescript
+function LicenseSettings() {
+  const { checkLicense, isChecking, licenseStatus } = useLicenseStatus();
+
+  const handleRefresh = async () => {
+    // Invalidate cache and recheck
+    await invoke('invalidate_license_cache');
+    await checkLicense();
+  };
+
+  return (
+    <div>
+      <p>Status: {licenseStatus?.status}</p>
+      <button onClick={handleRefresh} disabled={isChecking}>
+        {isChecking ? 'Checking...' : 'Refresh License'}
+      </button>
+    </div>
+  );
+}
+```
+
+### License Activation Flow
+
+```typescript
+function LicenseActivation() {
+  const { checkLicense } = useLicenseStatus();
+  const [licenseKey, setLicenseKey] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  const handleActivate = async () => {
+    try {
+      await invoke('activate_license', { licenseKey });
+      await checkLicense(); // Refresh status after activation
+      setError(null);
+    } catch (err) {
+      setError(err as string);
+    }
+  };
+
+  return (
+    <div>
+      <input
+        type="text"
+        value={licenseKey}
+        onChange={(e) => setLicenseKey(e.target.value)}
+        placeholder="Enter license key"
+      />
+      <button onClick={handleActivate}>Activate</button>
+      {error && <p className="error">{error}</p>}
+    </div>
+  );
+}
+```
+
+### Show Expiration Warning
+
+```typescript
+function ExpirationWarning() {
+  const { licenseStatus } = useLicenseStatus();
+
+  const showWarning = licenseStatus?.status === 'trial' && 
+    licenseStatus.trial_days_left !== undefined &&
+    licenseStatus.trial_days_left <= 3;
+
+  if (!showWarning) return null;
+
+  return (
+    <div className="warning">
+      <p>Your trial expires in {licenseStatus.trial_days_left} days</p>
+      <button onClick={() => invoke('open_purchase_page')}>
+        Purchase Now
+      </button>
+    </div>
+  );
+}
+```
+
+### Account Tab Integration
+
+```typescript
+function AccountTab() {
+  const { licenseStatus, isValid, checkLicense } = useLicenseStatus();
+  const [activating, setActivating] = useState(false);
+
+  const handleDeactivate = async () => {
+    try {
+      await invoke('deactivate_license');
+      await checkLicense();
+    } catch (error) {
+      console.error('Deactivation failed:', error);
+    }
+  };
+
+  return (
+    <div className="account-tab">
+      <h2>License Status</h2>
+      
+      {licenseStatus?.status === 'active' && (
+        <div>
+          <p>✅ Licensed</p>
+          <p>Type: {licenseStatus.license_type}</p>
+          <button onClick={handleDeactivate}>
+            Deactivate on this device
+          </button>
+        </div>
+      )}
+
+      {licenseStatus?.status === 'trial' && (
+        <div>
+          <p>🎯 Trial Mode</p>
+          <p>Days remaining: {licenseStatus.trial_days_left}</p>
+          <button onClick={() => invoke('open_purchase_page')}>
+            Upgrade to Full License
+          </button>
+        </div>
+      )}
+
+      {licenseStatus?.status === 'expired' && (
+        <div>
+          <p>⚠️ Trial Expired</p>
+          <button onClick={() => invoke('open_purchase_page')}>
+            Purchase License
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+## Implementation Details
+
+The `useLicenseStatus` hook is a thin wrapper around the `LicenseContext` that:
+
+1. Accesses license state from React Context
+2. Computes derived values like `isValid`
+3. Provides a cleaner API for component use
+
+**Source**:
+
+```typescript
+export function useLicenseStatus() {
+  const { status, isLoading, checkStatus } = useLicense();
+
+  const isValid = status ?
+    ['active', 'trial'].includes(status.status) :
+    false;
+
+  return {
+    licenseStatus: status,
+    isValid,
+    isChecking: isLoading,
+    checkLicense: checkStatus
+  };
+}
+```
+
+## Context Provider
+
+The hook requires the `LicenseProvider` to be present in the component tree:
+
+```typescript
+import { LicenseProvider } from '@/contexts/LicenseContext';
+
+function App() {
+  return (
+    <LicenseProvider>
+      <YourApp />
+    </LicenseProvider>
+  );
+}
+```
+
+## Automatic Status Checks
+
+The License Context automatically:
+- Checks license status on app startup
+- Respects 8-hour cache TTL
+- Validates against offline grace periods
+- Updates status when license commands are invoked
+
+## See Also
+
+- [License Commands](/api/commands/license) - Backend license management commands
+- [Settings Commands](/api/commands/settings) - General settings management
