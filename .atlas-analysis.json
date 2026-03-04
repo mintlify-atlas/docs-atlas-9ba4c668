@@ -1,0 +1,144 @@
+{
+  "projectType": "saas",
+  "projectName": "VoiceTypr",
+  "projectDescription": "Open source AI-powered offline voice-to-text dictation tool for macOS and Windows",
+  "theme": "palm",
+  "primaryColor": "#8B5CF6",
+  "lightColor": "#C4B5FD",
+  "darkColor": "#6D28D9",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Core Features",
+            "pages": [
+              "features/voice-transcription",
+              "features/ai-models",
+              "features/ai-enhancement",
+              "features/hotkeys"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/system-requirements",
+              "guides/configuration",
+              "guides/model-management",
+              "guides/gpu-acceleration",
+              "guides/multi-language"
+            ]
+          },
+          {
+            "group": "Platform Specific",
+            "pages": [
+              "platforms/macos",
+              "platforms/windows"
+            ]
+          },
+          {
+            "group": "Help",
+            "pages": [
+              "troubleshooting",
+              "faq"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Development",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "development/setup",
+              "development/architecture"
+            ]
+          },
+          {
+            "group": "Building",
+            "pages": [
+              "development/building",
+              "development/testing"
+            ]
+          },
+          {
+            "group": "Contributing",
+            "pages": [
+              "development/contributing",
+              "development/code-style"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "api/overview"
+            ]
+          },
+          {
+            "group": "Tauri Commands",
+            "pages": [
+              "api/commands/audio",
+              "api/commands/model",
+              "api/commands/ai",
+              "api/commands/settings"
+            ]
+          },
+          {
+            "group": "React Hooks",
+            "pages": [
+              "api/hooks/recording",
+              "api/hooks/model-management",
+              "api/hooks/permissions"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Offline AI voice-to-text transcription",
+    "System-wide hotkey recording",
+    "Multiple AI models (Whisper, Parakeet)",
+    "AI enhancement with LLM providers",
+    "Hardware acceleration (Metal, GPU)",
+    "99+ language support",
+    "Privacy-first design",
+    "Cross-platform (macOS/Windows)"
+  ],
+  "publicApiSurface": [
+    "start_recording",
+    "stop_recording",
+    "cancel_recording",
+    "transcribe_audio",
+    "download_model",
+    "delete_model",
+    "list_available_models",
+    "enhance_transcription",
+    "get_ai_settings",
+    "update_ai_settings",
+    "save_transcription",
+    "get_transcription_history",
+    "get_audio_devices",
+    "check_license_status",
+    "activate_license",
+    "useRecording",
+    "useModelManagement",
+    "usePermissions",
+    "useLicenseStatus"
+  ]
+}
