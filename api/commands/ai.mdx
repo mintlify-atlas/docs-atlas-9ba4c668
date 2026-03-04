@@ -1,0 +1,552 @@
+---
+title: AI Commands
+description: Tauri commands for AI-powered transcription enhancement with OpenAI, Gemini, and custom providers
+icon: sparkles
+---
+
+AI commands enable post-processing of transcriptions using large language models for grammar correction, formatting, and punctuation.
+
+## AI Settings
+
+### get_ai_settings
+
+Get current AI enhancement settings.
+
+```rust
+#[tauri::command]
+pub async fn get_ai_settings(
+    app: AppHandle,
+) -> Result<AISettings, String>
+```
+
+**Returns:**
+
+```typescript
+interface AISettings {
+  enabled: boolean;        // AI enhancement enabled/disabled
+  provider: string;        // "openai", "gemini", or "custom"
+  model: string;           // Model ID (e.g., "gpt-5-nano")
+  hasApiKey: boolean;      // API key configured
+}
+```
+
+**Usage:**
+
+```typescript
+const settings = await invoke<AISettings>('get_ai_settings');
+
+if (settings.enabled && settings.hasApiKey) {
+  console.log(`AI enabled with ${settings.provider}/${settings.model}`);
+} else if (settings.enabled && !settings.hasApiKey) {
+  console.warn('AI enabled but no API key configured');
+}
+```
+
+---
+
+### get_ai_settings_for_provider
+
+Get AI settings for a specific provider.
+
+```rust
+#[tauri::command]
+pub async fn get_ai_settings_for_provider(
+    provider: String,
+    app: AppHandle,
+) -> Result<AISettings, String>
+```
+
+<ParamField path="provider" type="string" required>
+  Provider name: `"openai"`, `"gemini"`, or `"custom"`
+</ParamField>
+
+**Usage:**
+
+```typescript
+const geminiSettings = await invoke<AISettings>('get_ai_settings_for_provider', {
+  provider: 'gemini'
+});
+```
+
+---
+
+### update_ai_settings
+
+Update AI enhancement settings.
+
+```rust
+#[tauri::command]
+pub async fn update_ai_settings(
+    enabled: bool,
+    provider: String,
+    model: String,
+    app: AppHandle,
+) -> Result<(), String>
+```
+
+<ParamField path="enabled" type="boolean" required>
+  Enable or disable AI enhancement
+</ParamField>
+
+<ParamField path="provider" type="string" required>
+  AI provider: `"openai"`, `"gemini"`, or `"custom"`
+</ParamField>
+
+<ParamField path="model" type="string" required>
+  Model ID (e.g., `"gpt-5-nano"`, `"gemini-3-flash-preview"`)
+</ParamField>
+
+**Usage:**
+
+```typescript
+await invoke('update_ai_settings', {
+  enabled: true,
+  provider: 'openai',
+  model: 'gpt-5-nano'
+});
+```
+
+**Errors:**
+
+- `"Please select a model before enabling AI enhancement"` - Model empty
+- `"API key not found. Please add an API key first."` - No API key cached
+
+---
+
+### disable_ai_enhancement
+
+Disable AI enhancement.
+
+```rust
+#[tauri::command]
+pub async fn disable_ai_enhancement(
+    app: AppHandle,
+) -> Result<(), String>
+```
+
+**Usage:**
+
+```typescript
+await invoke('disable_ai_enhancement');
+```
+
+---
+
+## API Key Management
+
+### cache_ai_api_key
+
+Cache an API key for backend use (called on app startup).
+
+```rust
+#[tauri::command]
+pub async fn cache_ai_api_key(
+    _app: AppHandle,
+    args: CacheApiKeyArgs,
+) -> Result<(), String>
+```
+
+<ParamField path="args.provider" type="string" required>
+  Provider: `"openai"`, `"gemini"`, or `"custom"`
+</ParamField>
+
+<ParamField path="args.apiKey" type="string" required>
+  API key to cache
+</ParamField>
+
+**Usage:**
+
+```typescript
+// Frontend stores key in Stronghold, then caches for backend
+await invoke('cache_ai_api_key', {
+  provider: 'openai',
+  apiKey: 'sk-...' // From secure storage
+});
+```
+
+**Note:** This command does NOT validate the API key. Use `validate_and_cache_api_key` for new keys.
+
+---
+
+### validate_and_cache_api_key
+
+Validate and cache a new API key.
+
+```rust
+#[tauri::command]
+pub async fn validate_and_cache_api_key(
+    app: AppHandle,
+    args: ValidateAndCacheApiKeyArgs,
+) -> Result<(), String>
+```
+
+<ParamField path="args.provider" type="string" required>
+  Provider: `"openai"`, `"gemini"`, or `"custom"`
+</ParamField>
+
+<ParamField path="args.apiKey" type="string">
+  API key (optional for `noAuth: true`)
+</ParamField>
+
+<ParamField path="args.baseUrl" type="string">
+  Custom base URL (for OpenAI-compatible APIs)
+</ParamField>
+
+<ParamField path="args.model" type="string">
+  Model to test (defaults to `"gpt-5-nano"`)
+</ParamField>
+
+<ParamField path="args.noAuth" type="boolean">
+  Skip authentication (for local LLMs)
+</ParamField>
+
+**Usage:**
+
+```typescript
+// Validate OpenAI key
+try {
+  await invoke('validate_and_cache_api_key', {
+    provider: 'openai',
+    apiKey: 'sk-...',
+    model: 'gpt-5-nano'
+  });
+  console.log('API key validated successfully');
+} catch (error) {
+  console.error('Invalid API key:', error);
+}
+
+// Validate custom OpenAI-compatible endpoint
+await invoke('validate_and_cache_api_key', {
+  provider: 'custom',
+  baseUrl: 'http://localhost:1234/v1',
+  model: 'local-model',
+  noAuth: true // No API key needed for local LLM
+});
+```
+
+**Validation:**
+
+1. For OpenAI/custom: Sends test request to `/v1/models` or `/v1/chat/completions`
+2. Checks if specified model exists
+3. Caches key only if validation succeeds
+
+**Errors:**
+
+- `"HTTP 401: Unauthorized"` - Invalid API key
+- `"Model 'xyz' not found in endpoint model list"` - Model doesn't exist
+- `"Network error"` - Connection failed
+
+---
+
+### test_openai_endpoint
+
+Test an OpenAI-compatible endpoint without saving.
+
+```rust
+#[tauri::command]
+pub async fn test_openai_endpoint(
+    base_url: String,
+    model: String,
+    api_key: Option<String>,
+    no_auth: Option<bool>,
+) -> Result<(), String>
+```
+
+<ParamField path="base_url" type="string" required>
+  Base URL (e.g., `"http://localhost:1234/v1"`)
+</ParamField>
+
+<ParamField path="model" type="string" required>
+  Model to test
+</ParamField>
+
+<ParamField path="api_key" type="string">
+  API key (optional)
+</ParamField>
+
+<ParamField path="no_auth" type="boolean">
+  Skip authentication
+</ParamField>
+
+**Usage:**
+
+```typescript
+// Test local LLM endpoint
+try {
+  await invoke('test_openai_endpoint', {
+    baseUrl: 'http://localhost:1234/v1',
+    model: 'llama-3.1',
+    noAuth: true
+  });
+  console.log('Endpoint is valid');
+} catch (error) {
+  console.error('Endpoint test failed:', error);
+}
+```
+
+---
+
+### clear_ai_api_key_cache
+
+Clear cached API key for a provider.
+
+```rust
+#[tauri::command]
+pub async fn clear_ai_api_key_cache(
+    _app: AppHandle,
+    provider: String,
+) -> Result<(), String>
+```
+
+<ParamField path="provider" type="string" required>
+  Provider to clear
+</ParamField>
+
+**Usage:**
+
+```typescript
+await invoke('clear_ai_api_key_cache', { provider: 'openai' });
+```
+
+---
+
+## Enhancement
+
+### enhance_transcription
+
+Enhance transcribed text using AI.
+
+```rust
+#[tauri::command]
+pub async fn enhance_transcription(
+    text: String,
+    app: AppHandle,
+) -> Result<String, String>
+```
+
+<ParamField path="text" type="string" required>
+  Raw transcription text to enhance
+</ParamField>
+
+**Returns:** Enhanced text with proper grammar, punctuation, and formatting
+
+**Usage:**
+
+```typescript
+const rawText = "hello world this is a test";
+const enhanced = await invoke<string>('enhance_transcription', {
+  text: rawText
+});
+
+console.log('Enhanced:', enhanced);
+// Output: "Hello world, this is a test."
+```
+
+**Behavior:**
+
+1. Checks if AI is enabled in settings
+2. Returns original text if disabled
+3. Loads provider config (API key, base URL, model)
+4. Sends text to LLM with enhancement prompt
+5. Returns formatted response
+
+**Enhancement Options:**
+
+See `get_enhancement_options` and `update_enhancement_options` for customization.
+
+**Errors:**
+
+- `"AI enhancement is disabled"` - Not enabled in settings
+- `"API key not found in cache"` - Missing API key
+- `"AI formatting failed: ..."` - LLM request failed
+
+---
+
+### get_enhancement_options
+
+Get AI enhancement formatting options.
+
+```rust
+#[tauri::command]
+pub async fn get_enhancement_options(
+    app: AppHandle,
+) -> Result<EnhancementOptions, String>
+```
+
+**Returns:**
+
+```typescript
+interface EnhancementOptions {
+  preset: 'professional' | 'casual' | 'technical' | 'creative';
+  custom_instructions?: string;
+}
+```
+
+**Usage:**
+
+```typescript
+const options = await invoke<EnhancementOptions>('get_enhancement_options');
+console.log('Using preset:', options.preset);
+```
+
+---
+
+### update_enhancement_options
+
+Update AI enhancement options.
+
+```rust
+#[tauri::command]
+pub async fn update_enhancement_options(
+    options: EnhancementOptions,
+    app: AppHandle,
+) -> Result<(), String>
+```
+
+<ParamField path="options.preset" type="string" required>
+  Formatting preset: `"professional"`, `"casual"`, `"technical"`, or `"creative"`
+</ParamField>
+
+<ParamField path="options.custom_instructions" type="string">
+  Additional instructions for the LLM
+</ParamField>
+
+**Usage:**
+
+```typescript
+await invoke('update_enhancement_options', {
+  options: {
+    preset: 'technical',
+    custom_instructions: 'Format code snippets with markdown'
+  }
+});
+```
+
+---
+
+## Provider Models
+
+### list_provider_models
+
+Get curated list of models for a provider.
+
+```rust
+#[tauri::command]
+pub async fn list_provider_models(
+    provider: String,
+    _app: AppHandle,
+) -> Result<Vec<ProviderModel>, String>
+```
+
+<ParamField path="provider" type="string" required>
+  Provider: `"openai"` or `"gemini"`
+</ParamField>
+
+**Returns:**
+
+```typescript
+interface ProviderModel {
+  id: string;              // Model ID (e.g., "gpt-5-nano")
+  name: string;            // Display name (e.g., "GPT-5 Nano")
+  recommended: boolean;    // Official recommendation
+}
+```
+
+**Usage:**
+
+```typescript
+const models = await invoke<ProviderModel[]>('list_provider_models', {
+  provider: 'openai'
+});
+
+const recommended = models.find(m => m.recommended);
+console.log('Recommended:', recommended.name);
+```
+
+**Available Models:**
+
+**OpenAI:**
+- `gpt-5-nano` - GPT-5 Nano (recommended)
+- `gpt-5-mini` - GPT-5 Mini (recommended)
+
+**Gemini:**
+- `gemini-3-flash-preview` - Gemini 3 Flash (recommended)
+- `gemini-2.5-flash` - Gemini 2.5 Flash (recommended)
+- `gemini-2.5-flash-lite` - Gemini 2.5 Flash Lite (recommended)
+
+---
+
+## OpenAI Configuration
+
+### set_openai_config
+
+Configure OpenAI-compatible endpoint.
+
+```rust
+#[tauri::command]
+pub async fn set_openai_config(
+    app: AppHandle,
+    args: SetOpenAIConfigArgs,
+) -> Result<(), String>
+```
+
+<ParamField path="args.baseUrl" type="string" required>
+  Base URL (e.g., `"http://localhost:1234/v1"`)
+</ParamField>
+
+<ParamField path="args.noAuth" type="boolean">
+  Skip authentication (optional)
+</ParamField>
+
+**Usage:**
+
+```typescript
+await invoke('set_openai_config', {
+  baseUrl: 'http://localhost:1234/v1',
+  noAuth: true
+});
+```
+
+---
+
+### get_openai_config
+
+Get current OpenAI configuration.
+
+```rust
+#[tauri::command]
+pub async fn get_openai_config(
+    app: AppHandle,
+) -> Result<OpenAIConfig, String>
+```
+
+**Returns:**
+
+```typescript
+interface OpenAIConfig {
+  baseUrl: string;
+  noAuth: boolean;
+}
+```
+
+**Usage:**
+
+```typescript
+const config = await invoke<OpenAIConfig>('get_openai_config');
+console.log('Endpoint:', config.baseUrl);
+```
+
+---
+
+## Supported Providers
+
+| Provider | Models | API Key Required |
+|----------|--------|------------------|
+| OpenAI | GPT-5 Nano, GPT-5 Mini | Yes |
+| Gemini | Gemini 3 Flash, Gemini 2.5 Flash | Yes |
+| Custom | Any OpenAI-compatible | Optional |
+
+## See Also
+
+- [Audio Commands](/api/commands/audio) - Transcription workflow
+- [Settings Commands](/api/commands/settings) - AI settings persistence

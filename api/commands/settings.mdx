@@ -1,0 +1,463 @@
+---
+title: Settings Commands
+description: Tauri commands for managing application settings and configuration
+icon: sliders
+---
+
+Settings commands handle application configuration, including hotkeys, models, audio devices, and UI preferences.
+
+## Settings Management
+
+### get_settings
+
+Retrieve current application settings.
+
+```rust
+#[tauri::command]
+pub async fn get_settings(
+    app: AppHandle,
+) -> Result<Settings, String>
+```
+
+**Returns:** Complete settings object
+
+**Usage:**
+
+```typescript
+import { invoke } from '@tauri-apps/api/core';
+
+const settings = await invoke<AppSettings>('get_settings');
+console.log('Current model:', settings.current_model);
+console.log('Hotkey:', settings.hotkey);
+```
+
+---
+
+### save_settings
+
+Save updated application settings.
+
+```rust
+#[tauri::command]
+pub async fn save_settings(
+    app: AppHandle,
+    settings: Settings,
+) -> Result<(), String>
+```
+
+<ParamField path="settings" type="Settings" required>
+  Complete settings object to save
+</ParamField>
+
+**Usage:**
+
+```typescript
+const settings = await invoke<AppSettings>('get_settings');
+
+// Update a setting
+settings.language = 'es';
+settings.theme = 'dark';
+
+// Save changes
+await invoke('save_settings', { settings });
+```
+
+**Side Effects:**
+
+1. **Model Change**: Preloads new model and updates tray menu
+2. **Recording Mode Change**: Updates PTT shortcut registration
+3. **Pill Indicator Mode Change**: Shows/hides pill widget
+4. **Pill Position Change**: Recreates pill window at new location
+5. **Onboarding Complete**: Starts device watcher
+6. **Emits Event**: `settings-changed` to all windows
+
+---
+
+## AppSettings Interface
+
+```typescript
+interface AppSettings {
+  // Recording
+  hotkey: string;                              // Global hotkey (e.g., "CommandOrControl+Shift+Space")
+  recording_mode?: 'toggle' | 'push_to_talk';  // Recording mode
+  use_different_ptt_key?: boolean;             // Use separate PTT key
+  ptt_hotkey?: string;                         // Push-to-talk hotkey
+
+  // Speech Recognition
+  current_model: string;                       // Selected model name
+  current_model_engine?: 'whisper' | 'parakeet' | 'soniox';
+  language: string;                            // Language code (e.g., "en")
+  translate_to_english?: boolean;              // Translate to English
+
+  // Audio
+  selected_microphone?: string | null;         // Microphone device name
+  play_sound_on_recording?: boolean;           // Play sound on start
+  play_sound_on_recording_end?: boolean;       // Play sound on stop
+  pause_media_during_recording?: boolean;      // Pause system media
+
+  // UI
+  theme: string;                               // "light", "dark", or "system"
+  pill_indicator_mode?: 'never' | 'always' | 'when_recording';
+  pill_indicator_position?: string;            // "top-center", "bottom-center", etc.
+  pill_indicator_offset?: number;              // Offset from edge (10-50 pixels)
+
+  // Transcription
+  keep_transcription_in_clipboard?: boolean;   // Keep in clipboard after paste
+  transcription_cleanup_days?: number | null;  // Auto-delete after N days (null = keep forever)
+
+  // System
+  launch_at_startup?: boolean;                 // Launch on login
+  check_updates_automatically?: boolean;       // Auto-check for updates
+  onboarding_completed?: boolean;              // Onboarding finished
+}
+```
+
+---
+
+## Shortcut Management
+
+### set_global_shortcut
+
+Update the global recording shortcut.
+
+```rust
+#[tauri::command]
+pub async fn set_global_shortcut(
+    app: AppHandle,
+    shortcut: String,
+) -> Result<(), String>
+```
+
+<ParamField path="shortcut" type="string" required>
+  Keyboard shortcut (e.g., `"CommandOrControl+Shift+Space"`)
+</ParamField>
+
+**Usage:**
+
+```typescript
+try {
+  await invoke('set_global_shortcut', {
+    shortcut: 'CommandOrControl+Shift+R'
+  });
+  console.log('Hotkey updated successfully');
+} catch (error) {
+  console.error('Failed to set hotkey:', error);
+  // Error: "Hotkey is already in use by another application"
+}
+```
+
+**Validation:**
+
+1. Checks format validity
+2. Normalizes key names (e.g., `Space` → `space`)
+3. Attempts registration with OS
+4. Returns error if hotkey is already in use
+
+**Supported Modifiers:**
+
+- `CommandOrControl` (Cmd on macOS, Ctrl on Windows/Linux)
+- `Shift`
+- `Alt` / `Option`
+- `Control`
+- `Command` (macOS only)
+
+**Errors:**
+
+- `"Hotkey is already in use by another application"` - Conflict detected
+- `"Invalid hotkey combination"` - Invalid format
+- `"Invalid shortcut format"` - Parsing error
+
+---
+
+## Language Settings
+
+### get_supported_languages
+
+Get list of supported transcription languages.
+
+```rust
+#[tauri::command]
+pub async fn get_supported_languages() -> Result<Vec<LanguageInfo>, String>
+```
+
+**Returns:**
+
+```typescript
+interface LanguageInfo {
+  code: string;  // ISO 639-1 code (e.g., "en")
+  name: string;  // Display name (e.g., "English")
+}
+```
+
+**Usage:**
+
+```typescript
+const languages = await invoke<LanguageInfo[]>('get_supported_languages');
+
+// Build language selector
+languages.forEach(lang => {
+  console.log(`${lang.code}: ${lang.name}`);
+});
+```
+
+**Example Response:**
+
+```json
+[
+  { "code": "en", "name": "English" },
+  { "code": "es", "name": "Spanish" },
+  { "code": "fr", "name": "French" },
+  { "code": "de", "name": "German" },
+  { "code": "ja", "name": "Japanese" },
+  { "code": "zh", "name": "Chinese" }
+]
+```
+
+---
+
+## Audio Device Settings
+
+### set_audio_device
+
+Set the selected microphone device.
+
+```rust
+#[tauri::command]
+pub async fn set_audio_device(
+    app: AppHandle,
+    device_name: Option<String>,
+) -> Result<(), String>
+```
+
+<ParamField path="device_name" type="string | null" required>
+  Device name or `null` for system default
+</ParamField>
+
+**Usage:**
+
+```typescript
+// Set specific device
+await invoke('set_audio_device', {
+  deviceName: 'External USB Microphone'
+});
+
+// Use system default
+await invoke('set_audio_device', {
+  deviceName: null
+});
+```
+
+**Side Effects:**
+
+1. Stops any active recording
+2. Updates settings
+3. Refreshes tray menu
+4. Emits `audio-device-changed` event
+
+---
+
+### validate_microphone_selection
+
+Validate that the selected microphone still exists.
+
+```rust
+#[tauri::command]
+pub async fn validate_microphone_selection(
+    app: AppHandle,
+) -> Result<bool, String>
+```
+
+**Returns:** `true` if microphone was reset, `false` if valid or using default
+
+**Usage:**
+
+```typescript
+const wasReset = await invoke<boolean>('validate_microphone_selection');
+
+if (wasReset) {
+  console.log('Selected microphone no longer available, using default');
+}
+```
+
+**Behavior:**
+
+- Checks if selected microphone exists in device list
+- If missing, resets to system default
+- Returns `true` if reset occurred
+
+---
+
+## Model Settings
+
+### set_model_from_tray
+
+Set the active model from tray menu selection.
+
+```rust
+#[tauri::command]
+pub async fn set_model_from_tray(
+    app: AppHandle,
+    model_name: String,
+) -> Result<(), String>
+```
+
+<ParamField path="model_name" type="string" required>
+  Model to activate
+</ParamField>
+
+**Usage:**
+
+```typescript
+await invoke('set_model_from_tray', {
+  modelName: 'base.en'
+});
+```
+
+**Behavior:**
+
+1. Determines model engine (Whisper/Parakeet/Soniox)
+2. Updates settings
+3. Preloads model (if Whisper)
+4. Updates tray menu
+5. Emits `model-changed` event
+
+---
+
+### update_tray_menu
+
+Refresh the tray menu (called automatically after model/device changes).
+
+```rust
+#[tauri::command]
+pub async fn update_tray_menu(
+    app: AppHandle,
+) -> Result<(), String>
+```
+
+**Usage:**
+
+```typescript
+await invoke('update_tray_menu');
+```
+
+---
+
+## Frontend Logging
+
+### frontend_log
+
+Log a message from frontend to backend logs.
+
+```rust
+#[tauri::command]
+pub async fn frontend_log(
+    message: String,
+) -> Result<(), String>
+```
+
+<ParamField path="message" type="string" required>
+  Log message
+</ParamField>
+
+**Usage:**
+
+```typescript
+await invoke('frontend_log', {
+  message: 'User clicked download button'
+});
+```
+
+**Output:** Appears in backend logs as `[FRONTEND] User clicked download button`
+
+---
+
+## Settings Constants
+
+```rust
+// Recording indicator offset bounds
+pub const MIN_INDICATOR_OFFSET: u32 = 10;  // pixels
+pub const MAX_INDICATOR_OFFSET: u32 = 50;  // pixels
+pub const DEFAULT_INDICATOR_OFFSET: u32 = 10;
+```
+
+---
+
+## Default Settings
+
+```rust
+impl Default for Settings {
+    fn default() -> Self {
+        Self {
+            hotkey: "CommandOrControl+Shift+Space".to_string(),
+            current_model: "".to_string(),  // Auto-select
+            current_model_engine: "whisper".to_string(),
+            language: "en".to_string(),
+            translate_to_english: false,
+            theme: "system".to_string(),
+            transcription_cleanup_days: None,  // Keep forever
+            launch_at_startup: false,
+            onboarding_completed: false,
+            check_updates_automatically: true,
+            selected_microphone: None,  // System default
+            recording_mode: "toggle".to_string(),
+            use_different_ptt_key: false,
+            ptt_hotkey: Some("Alt+Space".to_string()),
+            keep_transcription_in_clipboard: false,
+            play_sound_on_recording: true,
+            play_sound_on_recording_end: true,
+            pill_indicator_mode: "when_recording".to_string(),
+            pill_indicator_position: "bottom-center".to_string(),
+            pill_indicator_offset: DEFAULT_INDICATOR_OFFSET,
+            pause_media_during_recording: true,
+        }
+    }
+}
+```
+
+---
+
+## Example: Complete Settings Update
+
+```typescript
+import { invoke } from '@tauri-apps/api/core';
+import type { AppSettings } from '@/types';
+
+// Load current settings
+const settings = await invoke<AppSettings>('get_settings');
+
+// Update multiple settings
+const updatedSettings: AppSettings = {
+  ...settings,
+  
+  // Change model
+  current_model: 'large-v3',
+  current_model_engine: 'whisper',
+  
+  // Update UI preferences
+  theme: 'dark',
+  pill_indicator_mode: 'always',
+  pill_indicator_position: 'top-center',
+  
+  // Configure audio
+  selected_microphone: 'AirPods Pro',
+  play_sound_on_recording: false,
+  
+  // Set language
+  language: 'es',
+  translate_to_english: false,
+};
+
+// Save all changes
+try {
+  await invoke('save_settings', { settings: updatedSettings });
+  console.log('Settings saved successfully');
+} catch (error) {
+  console.error('Failed to save settings:', error);
+}
+```
+
+## See Also
+
+- [Audio Commands](/api/commands/audio) - Recording and device management
+- [Model Commands](/api/commands/model) - Model selection and downloads
+- [AI Commands](/api/commands/ai) - AI enhancement settings

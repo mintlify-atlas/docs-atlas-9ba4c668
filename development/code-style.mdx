@@ -1,0 +1,537 @@
+---
+title: Code Style
+description: Code style guidelines and conventions for VoiceTypr
+---
+
+## Overview
+
+Consistent code style makes the codebase easier to read, review, and maintain. Follow these guidelines for all contributions.
+
+## Frontend Style (React + TypeScript)
+
+### TypeScript
+
+#### Strict Type Safety
+
+```typescript
+// ✅ Good - Explicit types
+interface RecordingState {
+  isRecording: boolean;
+  duration: number;
+  audioData: Float32Array | null;
+}
+
+const startRecording = async (): Promise<void> => {
+  // Implementation
+};
+
+// ❌ Bad - Using 'any'
+const processData = (data: any) => {
+  // Avoid 'any' type
+};
+```
+
+#### Type Imports
+
+```typescript
+// ✅ Good - Type-only imports
+import type { AppState } from '@/types';
+import { useState } from 'react';
+
+// ❌ Bad - Mixed imports
+import { AppState } from '@/types';
+```
+
+### React Components
+
+#### Function Components
+
+```typescript
+// ✅ Good - Named function component
+export function RecordButton({ onClick }: RecordButtonProps) {
+  const [isRecording, setIsRecording] = useState(false);
+  
+  return (
+    <Button onClick={onClick} variant="destructive">
+      {isRecording ? 'Stop' : 'Record'}
+    </Button>
+  );
+}
+
+// ❌ Bad - Arrow function default export
+export default ({ onClick }) => {
+  // Harder to debug and find
+};
+```
+
+#### Props Interface
+
+```typescript
+// ✅ Good - Clear interface
+interface ModelCardProps {
+  name: string;
+  size: number;
+  isDownloaded: boolean;
+  onDownload: () => void;
+}
+
+export function ModelCard({ name, size, isDownloaded, onDownload }: ModelCardProps) {
+  // Implementation
+}
+```
+
+### Hooks
+
+#### Custom Hooks
+
+```typescript
+// ✅ Good - Descriptive hook name
+export function useTranscription() {
+  const [text, setText] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  
+  const transcribe = async (audioPath: string) => {
+    setIsProcessing(true);
+    try {
+      const result = await invoke('transcribe_audio', { audioPath });
+      setText(result);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+  
+  return { text, isProcessing, transcribe };
+}
+```
+
+#### Hook Dependencies
+
+```typescript
+// ✅ Good - Explicit dependencies
+useEffect(() => {
+  const loadModel = async () => {
+    await invoke('load_model', { name: modelName });
+  };
+  loadModel();
+}, [modelName]); // Clear dependency
+
+// ❌ Bad - Missing or wrong dependencies
+useEffect(() => {
+  loadModel(); // modelName used but not listed
+}, []); // ESLint will warn
+```
+
+### Import Conventions
+
+#### Path Aliases
+
+Always use `@/*` instead of relative paths:
+
+```typescript
+// ✅ Good - Path alias
+import { Button } from '@/components/ui/button';
+import { useSettings } from '@/hooks/useSettings';
+import type { AppState } from '@/types';
+
+// ❌ Bad - Relative paths
+import { Button } from '../../../components/ui/button';
+import { useSettings } from '../../hooks/useSettings';
+```
+
+#### Import Order
+
+```typescript
+// 1. React imports
+import { useState, useEffect } from 'react';
+
+// 2. Third-party imports
+import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
+
+// 3. Local imports (components, hooks, utils)
+import { Button } from '@/components/ui/button';
+import { useRecording } from '@/hooks/useRecording';
+import { formatDuration } from '@/utils/time';
+
+// 4. Type imports
+import type { RecordingState } from '@/types';
+
+// 5. Styles
+import './styles.css';
+```
+
+### Tailwind CSS
+
+#### Class Ordering
+
+Use a consistent order:
+
+```typescript
+// Layout → Spacing → Sizing → Typography → Visual → Effects
+<div className="
+  flex items-center justify-between  // Layout
+  p-4 gap-2                          // Spacing
+  w-full h-12                        // Sizing
+  text-sm font-medium               // Typography
+  bg-primary text-white             // Visual
+  rounded-lg shadow-sm              // Effects
+  hover:bg-primary/90               // States
+">
+```
+
+#### Conditional Classes
+
+```typescript
+// ✅ Good - Use clsx or cn helper
+import { cn } from '@/lib/utils';
+
+<Button className={cn(
+  "base-classes",
+  isActive && "active-classes",
+  variant === "destructive" && "destructive-classes"
+)}>
+
+// ❌ Bad - Template strings
+<Button className={`base-classes ${isActive ? 'active-classes' : ''}`}>
+```
+
+## Backend Style (Rust)
+
+### Formatting
+
+Always run `cargo fmt` before committing:
+
+```bash
+cd src-tauri
+cargo fmt
+```
+
+**Configuration** (`.rustfmt.toml`):
+
+```toml
+max_width = 100
+tab_spaces = 4
+use_field_init_shorthand = true
+use_try_shorthand = true
+```
+
+### Clippy Lints
+
+Run `cargo clippy` to catch common issues:
+
+```bash
+cd src-tauri
+cargo clippy -- -D warnings
+```
+
+**Fix suggestions**:
+
+```rust
+// ✅ Good - Following clippy suggestions
+if let Some(value) = option {
+    process(value);
+}
+
+// ❌ Bad - Clippy will suggest if-let
+match option {
+    Some(value) => process(value),
+    None => {},
+}
+```
+
+### Error Handling
+
+#### Result Types
+
+```rust
+// ✅ Good - Descriptive error types
+pub async fn start_recording() -> Result<(), RecordingError> {
+    // Implementation
+}
+
+// ❌ Bad - Generic error
+pub async fn start_recording() -> Result<(), String> {
+    // Less type-safe
+}
+```
+
+#### Custom Errors
+
+```rust
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+pub enum RecordingError {
+    #[error("Failed to start audio device: {0}")]
+    DeviceError(String),
+    
+    #[error("Recording already in progress")]
+    AlreadyRecording,
+    
+    #[error("No audio data available")]
+    NoData,
+}
+```
+
+### Async Code
+
+#### Tauri Commands
+
+```rust
+// ✅ Good - Async command with proper error handling
+#[tauri::command]
+async fn download_model(
+    name: String,
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+) -> Result<(), String> {
+    let mut downloader = state.downloader.lock().await;
+    downloader.download(&name, &app).await
+        .map_err(|e| e.to_string())
+}
+```
+
+#### Tokio Best Practices
+
+```rust
+// ✅ Good - Spawn tasks for concurrent work
+tokio::spawn(async move {
+    let _ = preload_model("base").await;
+});
+
+// ✅ Good - Use timeout for network operations
+let result = tokio::time::timeout(
+    Duration::from_secs(30),
+    download_file(url),
+).await??;
+```
+
+### State Management
+
+```rust
+// ✅ Good - Thread-safe state
+pub struct AppState {
+    pub recording: Arc<Mutex<Option<RecordingState>>>,
+    pub whisper: Arc<Mutex<Option<WhisperEngine>>>,
+}
+
+// Access in commands
+#[tauri::command]
+async fn get_status(state: State<'_, AppState>) -> Result<String, String> {
+    let recording = state.recording.lock().await;
+    Ok(format!("Status: {:?}", *recording))
+}
+```
+
+### Naming Conventions
+
+```rust
+// Modules: snake_case
+mod audio_processor;
+mod whisper_engine;
+
+// Types: PascalCase
+struct RecordingState;
+enum TranscriptionEngine;
+
+// Functions: snake_case
+fn start_recording() {}
+async fn transcribe_audio() {}
+
+// Constants: SCREAMING_SNAKE_CASE
+const MAX_RECORDING_DURATION: u64 = 300;
+const DEFAULT_SAMPLE_RATE: u32 = 16000;
+```
+
+## Testing Patterns
+
+### Frontend Tests
+
+```typescript
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+
+test('user can start recording', async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  
+  // Use accessible queries
+  const recordButton = screen.getByRole('button', { name: /record/i });
+  await user.click(recordButton);
+  
+  // Wait for async updates
+  await waitFor(() => {
+    expect(screen.getByText(/recording/i)).toBeInTheDocument();
+  });
+});
+```
+
+### Backend Tests
+
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_recording_lifecycle() {
+        let recorder = AudioRecorder::new();
+        
+        // Start recording
+        recorder.start().await.unwrap();
+        assert!(recorder.is_recording());
+        
+        // Wait and stop
+        tokio::time::sleep(Duration::from_millis(100)).await;
+        let data = recorder.stop().await.unwrap();
+        
+        // Verify
+        assert!(!data.is_empty());
+    }
+}
+```
+
+## Documentation
+
+### TypeScript JSDoc
+
+```typescript
+/**
+ * Download a Whisper model from remote server
+ * 
+ * @param modelName - Name of the model (tiny, base, small, medium, large)
+ * @param onProgress - Optional progress callback (0-1)
+ * @returns Promise that resolves when download completes
+ * 
+ * @example
+ * await downloadModel('base', (progress) => {
+ *   console.log(`Progress: ${progress * 100}%`);
+ * });
+ */
+export async function downloadModel(
+  modelName: string,
+  onProgress?: (progress: number) => void
+): Promise<void> {
+  // Implementation
+}
+```
+
+### Rust Doc Comments
+
+```rust
+/// Starts recording audio from the default input device
+/// 
+/// # Returns
+/// 
+/// Returns `Ok(())` if recording started successfully, or an error if:
+/// - No audio input device is available
+/// - Recording is already in progress
+/// - Permissions are not granted
+/// 
+/// # Examples
+/// 
+/// ```
+/// let recorder = AudioRecorder::new();
+/// recorder.start().await?;
+/// ```
+pub async fn start(&mut self) -> Result<(), RecordingError> {
+    // Implementation
+}
+```
+
+## Pre-Commit Checks
+
+Before every commit, run:
+
+```bash
+pnpm quality-gate
+```
+
+This runs:
+
+1. **TypeScript** - `pnpm typecheck`
+2. **ESLint** - `pnpm lint`
+3. **Frontend tests** - `pnpm test run`
+4. **Backend tests** - `pnpm test:backend`
+
+### Manual Checks
+
+```bash
+# Format frontend code
+pnpm format
+
+# Format backend code
+cd src-tauri && cargo fmt
+
+# Run clippy
+cd src-tauri && cargo clippy
+```
+
+## Editor Configuration
+
+### VS Code Settings
+
+`.vscode/settings.json`:
+
+```json
+{
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "[rust]": {
+    "editor.defaultFormatter": "rust-lang.rust-analyzer",
+    "editor.formatOnSave": true
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "tailwindCSS.experimental.classRegex": [
+    ["cn\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"]
+  ]
+}
+```
+
+## Common Pitfalls
+
+### TypeScript
+
+```typescript
+// ❌ Don't use 'any'
+const data: any = await invoke('get_data');
+
+// ✅ Define proper types
+interface ApiResponse {
+  status: string;
+  data: unknown;
+}
+const data: ApiResponse = await invoke('get_data');
+
+// ❌ Don't ignore null/undefined
+const value = data.field.nested; // Can crash
+
+// ✅ Use optional chaining
+const value = data?.field?.nested;
+```
+
+### Rust
+
+```rust
+// ❌ Don't unwrap in production code
+let value = option.unwrap();
+
+// ✅ Handle errors properly
+let value = option.ok_or("Value not found")?;
+
+// ❌ Don't clone unnecessarily
+let copy = expensive_data.clone();
+
+// ✅ Use references
+let reference = &expensive_data;
+```
+
+## Next Steps
+
+- Review [contributing guide](/development/contributing)
+- Read [testing documentation](/development/testing)
+- Check [architecture overview](/development/architecture)

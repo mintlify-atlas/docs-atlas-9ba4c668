@@ -1,0 +1,547 @@
+---
+title: Permission Hooks
+description: React hooks for managing macOS system permissions (microphone and accessibility)
+icon: shield-check
+---
+
+VoiceTypr provides React hooks for checking and requesting macOS system permissions required for recording and text insertion.
+
+## Required Permissions
+
+VoiceTypr requires two system permissions:
+
+1. **Microphone** - Record audio for transcription
+2. **Accessibility** - Insert transcribed text at cursor position
+
+## usePermissions Hook
+
+Comprehensive hook for managing all permissions.
+
+### Import
+
+```typescript
+import { usePermissions } from '@/hooks/usePermissions';
+import type { PermissionStatus, PermissionState } from '@/hooks/usePermissions';
+```
+
+### Usage
+
+```typescript
+function PermissionsScreen() {
+  const {
+    permissions,
+    checkPermissions,
+    requestPermission,
+    isChecking,
+    isRequesting,
+    error,
+    allGranted
+  } = usePermissions({ checkOnMount: true, showToasts: true });
+
+  return (
+    <div>
+      <h2>Permissions Status</h2>
+      
+      {allGranted ? (
+        <p className="success">All permissions granted!</p>
+      ) : (
+        <ul>
+          <li>
+            Microphone: {permissions.microphone}
+            {permissions.microphone === 'denied' && (
+              <button onClick={() => requestPermission('microphone')}>
+                Request Access
+              </button>
+            )}
+          </li>
+          
+          <li>
+            Accessibility: {permissions.accessibility}
+            {permissions.accessibility === 'denied' && (
+              <button onClick={() => requestPermission('accessibility')}>
+                Request Access
+              </button>
+            )}
+          </li>
+        </ul>
+      )}
+
+      {error && <p className="error">{error.message}</p>}
+      {isChecking && <p>Checking permissions...</p>}
+      {isRequesting && <p>Requesting {isRequesting} permission...</p>}
+    </div>
+  );
+}
+```
+
+### Options
+
+```typescript
+interface UsePermissionsOptions {
+  checkOnMount?: boolean;     // Check permissions on mount (default: true)
+  checkInterval?: number;     // Re-check interval in ms (default: 0 = disabled)
+  showToasts?: boolean;       // Show toast notifications (default: false)
+}
+```
+
+**Example:**
+
+```typescript
+// Check permissions every 5 seconds and show toasts
+const { permissions, allGranted } = usePermissions({
+  checkOnMount: true,
+  checkInterval: 5000,
+  showToasts: true
+});
+```
+
+---
+
+### Return Values
+
+#### permissions
+
+**Type:** `PermissionState`
+
+```typescript
+type PermissionStatus = 'checking' | 'granted' | 'denied';
+
+interface PermissionState {
+  microphone: PermissionStatus;
+  accessibility: PermissionStatus;
+}
+```
+
+Current status of each permission.
+
+---
+
+#### checkPermissions
+
+**Type:** `() => Promise<void>`
+
+Manually check all permissions.
+
+**Usage:**
+
+```typescript
+const { checkPermissions } = usePermissions({ checkOnMount: false });
+
+// Check when user returns from System Settings
+window.addEventListener('focus', async () => {
+  await checkPermissions();
+});
+```
+
+---
+
+#### requestPermission
+
+**Type:** `(type: 'microphone' | 'accessibility') => Promise<void>`
+
+Request a specific permission.
+
+**Parameters:**
+
+<ParamField path="type" type="string" required>
+  Permission type: `"microphone"` or `"accessibility"`
+</ParamField>
+
+**Usage:**
+
+```typescript
+const { requestPermission } = usePermissions();
+
+// Request microphone access
+await requestPermission('microphone');
+
+// Request accessibility access
+await requestPermission('accessibility');
+```
+
+**Behavior:**
+
+1. Invokes backend permission request command
+2. Opens System Settings if permission not granted
+3. Re-checks permissions after 1.5 seconds
+
+---
+
+#### isChecking
+
+**Type:** `boolean`
+
+Whether permissions are currently being checked.
+
+---
+
+#### isRequesting
+
+**Type:** `string | null`
+
+Permission type currently being requested (`"microphone"`, `"accessibility"`, or `null`).
+
+---
+
+#### error
+
+**Type:** `Error | null`
+
+Last error encountered during check/request.
+
+---
+
+#### allGranted
+
+**Type:** `boolean`
+
+Whether all required permissions are granted.
+
+**Equivalent to:**
+
+```typescript
+const allGranted = 
+  permissions.microphone === 'granted' && 
+  permissions.accessibility === 'granted';
+```
+
+---
+
+## useMicrophonePermission Hook
+
+Specialized hook for microphone permission only.
+
+### Import
+
+```typescript
+import { useMicrophonePermission } from '@/hooks/useMicrophonePermission';
+```
+
+### Usage
+
+```typescript
+function MicrophoneCheck() {
+  const { 
+    hasPermission, 
+    isChecking, 
+    checkPermission, 
+    requestPermission 
+  } = useMicrophonePermission();
+
+  if (isChecking) {
+    return <LoadingSpinner />;
+  }
+
+  if (hasPermission === false) {
+    return (
+      <div>
+        <p>Microphone access is required</p>
+        <button onClick={requestPermission}>Grant Access</button>
+      </div>
+    );
+  }
+
+  return <p>Microphone ready</p>;
+}
+```
+
+### Options
+
+```typescript
+interface MicrophonePermissionOptions {
+  checkOnMount?: boolean;  // Default: true
+}
+```
+
+---
+
+### Return Values
+
+#### hasPermission
+
+**Type:** `boolean | null`
+
+- `true` - Permission granted
+- `false` - Permission denied
+- `null` - Not yet checked
+
+---
+
+#### isChecking
+
+**Type:** `boolean`
+
+Whether permission check is in progress.
+
+---
+
+#### checkPermission
+
+**Type:** `() => Promise<boolean>`
+
+Manually check microphone permission.
+
+**Returns:** `true` if granted, `false` if denied
+
+---
+
+#### requestPermission
+
+**Type:** `() => Promise<boolean>`
+
+Request microphone permission from the user.
+
+**Returns:** `true` if granted, `false` if denied
+
+---
+
+### Events
+
+The hook listens to backend events:
+
+- `microphone-granted` - Permission granted
+- `microphone-denied` - Permission denied
+
+---
+
+## useAccessibilityPermission Hook
+
+Specialized hook for accessibility permission only.
+
+### Import
+
+```typescript
+import { useAccessibilityPermission } from '@/hooks/useAccessibilityPermission';
+```
+
+### Usage
+
+```typescript
+function AccessibilityCheck() {
+  const { 
+    hasPermission, 
+    isChecking, 
+    checkPermission, 
+    requestPermission 
+  } = useAccessibilityPermission();
+
+  if (isChecking) {
+    return <LoadingSpinner />;
+  }
+
+  if (hasPermission === false) {
+    return (
+      <div>
+        <p>Accessibility access is required to insert text</p>
+        <button onClick={requestPermission}>Grant Access</button>
+      </div>
+    );
+  }
+
+  return <p>Accessibility ready</p>;
+}
+```
+
+### Options
+
+```typescript
+interface AccessibilityPermissionOptions {
+  checkOnMount?: boolean;  // Default: true
+}
+```
+
+---
+
+### Return Values
+
+Same as `useMicrophonePermission`:
+
+- `hasPermission: boolean | null`
+- `isChecking: boolean`
+- `checkPermission: () => Promise<boolean>`
+- `requestPermission: () => Promise<boolean>`
+
+### Events
+
+- `accessibility-granted` - Permission granted
+- `accessibility-denied` - Permission denied
+
+---
+
+## Component Examples
+
+### Permission Onboarding Screen
+
+```typescript
+import { usePermissions } from '@/hooks/usePermissions';
+import { Check, X } from 'lucide-react';
+
+function OnboardingPermissions() {
+  const { permissions, requestPermission, allGranted, isRequesting } = usePermissions();
+
+  const handleNext = () => {
+    if (allGranted) {
+      // Proceed to next onboarding step
+    }
+  };
+
+  return (
+    <div className="onboarding">
+      <h1>Grant Permissions</h1>
+      <p>VoiceTypr needs access to your microphone and accessibility features.</p>
+
+      <ul className="permissions-list">
+        <li>
+          {permissions.microphone === 'granted' ? (
+            <Check className="granted" />
+          ) : (
+            <X className="denied" />
+          )}
+          <div>
+            <h3>Microphone</h3>
+            <p>Record your voice for transcription</p>
+            {permissions.microphone === 'denied' && (
+              <button 
+                onClick={() => requestPermission('microphone')}
+                disabled={isRequesting === 'microphone'}
+              >
+                {isRequesting === 'microphone' ? 'Requesting...' : 'Grant Access'}
+              </button>
+            )}
+          </div>
+        </li>
+
+        <li>
+          {permissions.accessibility === 'granted' ? (
+            <Check className="granted" />
+          ) : (
+            <X className="denied" />
+          )}
+          <div>
+            <h3>Accessibility</h3>
+            <p>Insert transcribed text at cursor position</p>
+            {permissions.accessibility === 'denied' && (
+              <button 
+                onClick={() => requestPermission('accessibility')}
+                disabled={isRequesting === 'accessibility'}
+              >
+                {isRequesting === 'accessibility' ? 'Requesting...' : 'Grant Access'}
+              </button>
+            )}
+          </div>
+        </li>
+      </ul>
+
+      <button 
+        onClick={handleNext}
+        disabled={!allGranted}
+        className="next-button"
+      >
+        Continue
+      </button>
+    </div>
+  );
+}
+```
+
+---
+
+### Permission Guard
+
+```typescript
+import { usePermissions } from '@/hooks/usePermissions';
+import { ReactNode } from 'react';
+
+interface PermissionGuardProps {
+  children: ReactNode;
+  fallback?: ReactNode;
+}
+
+function PermissionGuard({ children, fallback }: PermissionGuardProps) {
+  const { allGranted, isChecking, requestPermission } = usePermissions();
+
+  if (isChecking) {
+    return <LoadingScreen />;
+  }
+
+  if (!allGranted) {
+    return fallback || (
+      <div className="permission-required">
+        <h2>Permissions Required</h2>
+        <p>Please grant all permissions to use VoiceTypr</p>
+        <button onClick={() => requestPermission('microphone')}>
+          Grant Microphone Access
+        </button>
+        <button onClick={() => requestPermission('accessibility')}>
+          Grant Accessibility Access
+        </button>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+}
+
+// Usage
+function App() {
+  return (
+    <PermissionGuard>
+      <MainApp />
+    </PermissionGuard>
+  );
+}
+```
+
+---
+
+## TypeScript Types
+
+```typescript
+type PermissionStatus = 'checking' | 'granted' | 'denied';
+
+interface PermissionState {
+  microphone: PermissionStatus;
+  accessibility: PermissionStatus;
+}
+
+interface UsePermissionsReturn {
+  permissions: PermissionState;
+  checkPermissions: () => Promise<void>;
+  requestPermission: (type: keyof PermissionState) => Promise<void>;
+  isChecking: boolean;
+  isRequesting: string | null;
+  error: Error | null;
+  allGranted: boolean;
+}
+
+function usePermissions(options?: {
+  checkOnMount?: boolean;
+  checkInterval?: number;
+  showToasts?: boolean;
+}): UsePermissionsReturn;
+
+function useMicrophonePermission(options?: {
+  checkOnMount?: boolean;
+}): {
+  hasPermission: boolean | null;
+  isChecking: boolean;
+  checkPermission: () => Promise<boolean>;
+  requestPermission: () => Promise<boolean>;
+};
+
+function useAccessibilityPermission(options?: {
+  checkOnMount?: boolean;
+}): {
+  hasPermission: boolean | null;
+  isChecking: boolean;
+  checkPermission: () => Promise<boolean>;
+  requestPermission: () => Promise<boolean>;
+};
+```
+
+---
+
+## See Also
+
+- [Audio Commands](/api/commands/audio) - Recording requires microphone permission
+- [useRecording Hook](/api/hooks/recording) - Recording hook that depends on permissions

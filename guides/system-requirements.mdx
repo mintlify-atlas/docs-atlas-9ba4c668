@@ -1,0 +1,139 @@
+---
+title: System Requirements
+description: Hardware and software requirements for running VoiceTypr
+---
+
+VoiceTypr runs on macOS and Windows with minimal system requirements. However, certain features require specific configurations.
+
+## macOS Requirements
+
+### Operating System
+
+- **macOS 13.0 (Ventura) or later** is required
+- VoiceTypr is fully signed and notarized by Apple
+- Runs natively on both Intel and Apple Silicon Macs
+
+### Disk Space
+
+- **3-4 GB of free disk space** for AI models
+- Model sizes vary:
+  - Tiny models: ~75 MB
+  - Base models: ~142 MB
+  - Small models: ~466 MB
+  - Medium models: ~1.5 GB
+  - Large models: ~2.9 GB
+
+### Required Permissions
+
+<AccordionGroup>
+  <Accordion title="Microphone Access" icon="microphone" defaultOpen>
+    Required to record your voice for transcription.
+    
+    **How to grant:**
+    1. Open VoiceTypr
+    2. Go to Advanced settings
+    3. Click "Grant" for Microphone permission
+    4. Allow in System Settings when prompted
+  </Accordion>
+
+  <Accordion title="Accessibility Access" icon="universal-access">
+    Required for global hotkeys to work system-wide and for automatic text insertion.
+    
+    **How to grant:**
+    1. Open VoiceTypr
+    2. Go to Advanced settings
+    3. Click "Grant" for Accessibility permission
+    4. Add VoiceTypr in System Settings > Privacy & Security > Accessibility
+  </Accordion>
+</AccordionGroup>
+
+<Note>
+  Without Accessibility permission, hotkeys won't work when other apps are in focus.
+</Note>
+
+## Windows Requirements
+
+### Operating System
+
+- **Windows 10 (64-bit)** or **Windows 11**
+- No special permissions required - works out of the box
+
+### Disk Space
+
+- **3-4 GB of free disk space** for AI models
+- Same model sizes as macOS (see above)
+
+### GPU Support
+
+VoiceTypr automatically detects and uses your GPU for **5-10x faster** transcription:
+
+<CardGroup cols={3}>
+  <Card title="NVIDIA" icon="n">
+    GeForce, RTX, or Quadro series GPUs
+    
+    [Update drivers →](https://www.nvidia.com/drivers)
+  </Card>
+  
+  <Card title="AMD" icon="a">
+    Radeon series GPUs
+    
+    [Update drivers →](https://www.amd.com/support)
+  </Card>
+  
+  <Card title="Intel" icon="i">
+    Intel Iris Xe or Arc series GPUs
+    
+    [Update drivers →](https://www.intel.com/content/www/us/en/support/products/80939/graphics.html)
+  </Card>
+</CardGroup>
+
+<Info>
+  VoiceTypr automatically falls back to CPU if GPU acceleration is unavailable.
+</Info>
+
+## Hardware Acceleration
+
+### Metal (macOS)
+
+- Automatic hardware acceleration on all Macs
+- Uses **Metal GPU** for Whisper models
+- Uses **Apple Neural Engine** for Parakeet models (Apple Silicon only)
+
+### GPU (Windows)
+
+- Automatic detection and usage when available
+- **5-10x faster** than CPU-only transcription
+- Requires up-to-date graphics drivers
+
+<Warning>
+  Keep graphics drivers updated for best performance. Outdated drivers may prevent GPU acceleration.
+</Warning>
+
+## Microphone Requirements
+
+Any microphone works with VoiceTypr:
+
+- Built-in laptop microphone
+- USB microphone
+- Bluetooth headset
+- External audio interface
+
+<Tip>
+  For best accuracy, use a quality microphone in a quiet environment. Built-in mics work well for most use cases.
+</Tip>
+
+## Network Requirements
+
+<Info>
+  VoiceTypr works **100% offline** for core transcription features.
+</Info>
+
+Internet connection is only required for:
+
+- Initial app download and installation
+- Downloading AI models
+- AI Enhancement features (Groq/Gemini)
+- License activation
+- Automatic updates
+
+Once models are downloaded, transcription works completely offline.

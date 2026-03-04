@@ -1,0 +1,322 @@
+---
+title: 'Windows Platform'
+description: 'VoiceTypr features and requirements for Windows'
+icon: 'windows'
+---
+
+## Overview
+
+VoiceTypr for Windows includes GPU acceleration support via Vulkan, smart installer detection, and seamless integration with Windows 10 and 11.
+
+## System Requirements
+
+### Minimum Requirements
+
+- **Windows Version**: Windows 10 (64-bit) or Windows 11
+- **Free Disk Space**: 3-4 GB (for AI models)
+- **Memory**: 8 GB RAM recommended
+- **Processor**: x64 or ARM64 processor
+
+### Recommended for GPU Acceleration
+
+- **GPU**: NVIDIA, AMD, or Intel dedicated graphics
+- **VRAM**: 2+ GB
+- **Drivers**: Latest graphics drivers with Vulkan support
+
+## Installation
+
+### From NSIS Installer
+
+1. Download the latest installer from [GitHub Releases](https://github.com/moinulmoin/voicetypr/releases/latest)
+   - Look for: `VoiceTypr_x.x.x_x64_en-US.msi` or `VoiceTypr-Setup.exe`
+2. Run the installer
+3. Follow the installation wizard
+4. The installer will:
+   - Detect your GPU capabilities
+   - Install Visual C++ Runtime if needed
+   - Inform you about GPU acceleration options
+5. Launch VoiceTypr from the Start Menu
+6. Complete the onboarding to:
+   - Download your preferred AI model
+   - Set up your recording hotkey
+
+<Note>
+VoiceTypr includes a **smart installer** that detects GPU hardware and Vulkan runtime automatically.
+</Note>
+
+## GPU Acceleration
+
+### Vulkan Support
+
+VoiceTypr for Windows uses **Vulkan** for GPU-accelerated transcription:
+
+- **5-10x faster** than CPU-only mode
+- Works with **NVIDIA, AMD, and Intel** GPUs
+- Automatic fallback to CPU if GPU unavailable
+- Requires Vulkan Runtime (included in modern graphics drivers)
+
+### Supported GPUs
+
+- **NVIDIA**: GeForce GTX 900 series or newer (Vulkan 1.0+)
+- **AMD**: Radeon RX 400 series or newer (Vulkan 1.0+)
+- **Intel**: Arc series, Iris Xe, or UHD Graphics 600+ (Vulkan 1.0+)
+
+### Smart Installer Detection
+
+The installer automatically:
+
+1. **Detects dedicated GPU** (>1 GB VRAM)
+2. **Checks for Vulkan Runtime** (`vulkan-1.dll` in System32)
+3. **Informs you** if GPU acceleration is available
+4. **Provides driver update links** if Vulkan is missing
+
+From `smart-installer-hooks.nsh`:
+
+```nsh
+; GPU detected but Vulkan missing
+MessageBox MB_OK|MB_ICONINFORMATION "GPU Acceleration Available
+
+Good news! Your GPU can make VoiceTypr 5-10x faster.
+
+To enable GPU acceleration, please update your graphics drivers:
+
+• NVIDIA: nvidia.com/drivers
+• AMD: amd.com/support  
+• Intel: intel.com/content/www/us/en/support
+
+Modern graphics drivers include Vulkan Runtime automatically.
+After updating, VoiceTypr will use your GPU!"
+```
+
+### Driver Requirements
+
+For GPU acceleration, you need **up-to-date graphics drivers**:
+
+- **NVIDIA**: [Download NVIDIA Drivers](https://www.nvidia.com/drivers)
+- **AMD**: [Download AMD Drivers](https://www.amd.com/support)
+- **Intel**: [Download Intel Drivers](https://www.intel.com/content/www/us/en/support/products/80939/graphics.html)
+
+<Tip>
+**Modern graphics drivers include Vulkan Runtime automatically.** After updating, VoiceTypr will detect and use your GPU.
+</Tip>
+
+### Checking GPU Status
+
+To verify GPU acceleration is working:
+
+1. Check VoiceTypr logs after transcription
+2. Look for messages like: `"Using Vulkan GPU backend"`
+3. CPU fallback messages: `"GPU unavailable, using CPU"`
+
+Logs are located at:
+```
+%APPDATA%\com.voicetypr.app\logs\
+```
+
+## Required Permissions
+
+VoiceTypr requires minimal permissions on Windows:
+
+### Microphone Access
+
+**Required for**: Recording your voice
+
+- Prompt appears on first recording attempt
+- Navigate to: **Settings → Privacy → Microphone**
+- Enable for VoiceTypr
+
+### No Accessibility Requirement
+
+Unlike macOS, Windows VoiceTypr does **not** require accessibility permissions for text insertion. It uses standard Windows clipboard and input APIs.
+
+<Info>
+VoiceTypr preserves your original clipboard content and restores it after inserting text.
+</Info>
+
+## Platform Features
+
+### Visual C++ Runtime
+
+The installer includes **Visual C++ Runtime** bundling:
+
+- Automatically detects if already installed
+- Installs silently if needed
+- Ensures VoiceTypr runs on fresh Windows installations
+
+### System Tray Integration
+
+VoiceTypr integrates with the Windows system tray:
+
+- **Right-click** for quick actions
+- **Recent Transcriptions**: Copy previous transcriptions
+- **Recording Mode**: Toggle Push-to-Talk / Toggle mode
+- **Model Selection**: Switch between AI models
+- **Check for Updates**: Manual update check
+
+### Start Menu Integration
+
+- Launch from **Start Menu → VoiceTypr**
+- Pin to taskbar for quick access
+- Appears in installed programs list
+
+### Auto-Start Support
+
+VoiceTypr can start automatically when Windows boots:
+
+- **Settings → General → Launch at Startup**
+- Minimizes to system tray on startup
+- No performance impact when idle
+
+## Model Management
+
+### Whisper Models
+
+VoiceTypr for Windows uses Whisper models with Vulkan GPU acceleration:
+
+- **Tiny** - Fastest, lower accuracy (~75 MB)
+- **Base** - Balanced speed/accuracy (~142 MB)
+- **Small** - Recommended for most users (~466 MB)
+- **Medium** - High accuracy (~1.5 GB)
+- **Large** - Best accuracy, slower (~2.9 GB)
+
+<Note>
+**Parakeet models are macOS-only** and use Apple Neural Engine. Windows users should use Whisper models.
+</Note>
+
+### Model Storage Location
+
+Models are downloaded to:
+```
+%APPDATA%\com.voicetypr.app\models\
+```
+
+## Performance Characteristics
+
+### With GPU Acceleration (Vulkan)
+
+- **Transcription Speed**: 5-10x real-time
+- **Model Loading**: 2-5 seconds (first time)
+- **Memory Usage**: 500 MB - 2 GB (depending on model and VRAM)
+- **Best For**: Users with dedicated GPUs
+
+### Without GPU (CPU Only)
+
+- **Transcription Speed**: 1-2x real-time (depends on CPU)
+- **Model Loading**: 3-10 seconds
+- **Memory Usage**: 200-600 MB
+- **Best For**: Users without dedicated GPUs or with outdated drivers
+
+<Warning>
+**VoiceTypr always works** - it automatically falls back to CPU mode if GPU acceleration is unavailable.
+</Warning>
+
+## Troubleshooting
+
+### GPU Acceleration Not Working
+
+**Issue**: Slow transcription despite having a GPU
+
+**Solutions**:
+
+1. **Update graphics drivers** (most common fix):
+   - [NVIDIA Drivers](https://www.nvidia.com/drivers)
+   - [AMD Drivers](https://www.amd.com/support)
+   - [Intel Drivers](https://www.intel.com/content/www/us/en/support/products/80939/graphics.html)
+
+2. **Verify Vulkan is installed**:
+   - Check for `C:\Windows\System32\vulkan-1.dll`
+   - Download [Vulkan Runtime](https://vulkan.lunarg.com/sdk/home) if missing
+
+3. **Check Windows Event Viewer** for VoiceTypr errors
+
+### Installer Hangs or Fails
+
+**Issue**: Installation doesn't complete
+
+**Solutions**:
+
+1. **Run as Administrator**: Right-click installer → "Run as administrator"
+2. **Disable antivirus temporarily** during installation
+3. **Check disk space**: Ensure 5+ GB free
+
+### App Won't Launch
+
+**Issue**: VoiceTypr doesn't start after installation
+
+**Solutions**:
+
+1. **Install Visual C++ Runtime manually**:
+   - Download from [Microsoft](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist)
+   - Install `vc_redist.x64.exe`
+
+2. **Check Windows Defender**: Whitelist VoiceTypr if blocked
+
+3. **Reinstall**: Uninstall completely, then reinstall
+
+### Microphone Not Working
+
+**Issue**: No audio captured during recording
+
+**Solutions**:
+
+1. **Check microphone permissions**:
+   - **Settings → Privacy → Microphone**
+   - Enable for VoiceTypr
+
+2. **Select correct microphone**:
+   - Open VoiceTypr Settings
+   - **Settings → General → Microphone**
+   - Choose your preferred input device
+
+3. **Test microphone in Windows**:
+   - **Settings → System → Sound → Input**
+   - Speak and verify the level bar moves
+
+### Text Insertion Not Working
+
+**Issue**: Transcription completes but text doesn't appear
+
+**Solutions**:
+
+1. **Ensure cursor is in a text field** before recording
+2. **Try manual paste**: Transcription is copied to clipboard
+3. **Check app compatibility**: Some apps block automated input
+
+## Updates
+
+VoiceTypr includes automatic update checking:
+
+- Checks for updates on launch (requires internet)
+- Downloads updates in the background
+- Notifies when ready to install
+- **System Tray → Check for Updates** for manual check
+
+<Info>
+Update checks are the **only** internet connection required for normal operation. All transcription happens offline.
+</Info>
+
+## Uninstalling
+
+To uninstall VoiceTypr:
+
+1. **Settings → Apps → Installed apps**
+2. Find **VoiceTypr** in the list
+3. Click **⋯** → **Uninstall**
+4. Follow the uninstaller wizard
+
+### Remove App Data (Optional)
+
+To completely remove all app data:
+
+1. Press **Win + R**
+2. Type: `%APPDATA%` and press Enter
+3. Delete the folder: `com.voicetypr.app`
+4. Navigate to `%LOCALAPPDATA%`
+5. Delete the folder: `com.voicetypr.app`
+
+## See Also
+
+- [System Requirements](/guides/system-requirements)
+- [GPU Acceleration](/guides/gpu-acceleration)
+- [Troubleshooting](/troubleshooting)
+- [FAQ](/faq)

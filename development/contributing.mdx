@@ -1,0 +1,332 @@
+---
+title: Contributing
+description: How to contribute to VoiceTypr development
+---
+
+## Welcome Contributors
+
+We're excited you want to contribute to VoiceTypr! This guide will help you get started with the contribution process.
+
+## Ways to Contribute
+
+- **Report bugs** - Submit detailed bug reports
+- **Suggest features** - Propose new functionality
+- **Fix issues** - Pick up issues from GitHub
+- **Improve docs** - Enhance documentation
+- **Write tests** - Increase test coverage
+- **Review PRs** - Help review pull requests
+
+## Getting Started
+
+<Steps>
+  <Step title="Fork the Repository">
+    Fork [VoiceTypr on GitHub](https://github.com/moinulmoin/voicetypr) to your account.
+  </Step>
+
+  <Step title="Clone Your Fork">
+    ```bash
+    git clone https://github.com/YOUR_USERNAME/voicetypr.git
+    cd voicetypr
+    ```
+  </Step>
+
+  <Step title="Set Up Development Environment">
+    Follow the [development setup guide](/development/setup) to install dependencies and configure your environment.
+  </Step>
+
+  <Step title="Create a Feature Branch">
+    ```bash
+    git checkout -b feat/your-feature-name
+    ```
+    
+    Use descriptive branch names:
+    - `feat/add-model-export`
+    - `fix/recording-crash`
+    - `docs/update-readme`
+  </Step>
+</Steps>
+
+## Branch Workflow
+
+### Branch Naming Convention
+
+Use prefixes that match commit types:
+
+- `feat/` - New features
+- `fix/` - Bug fixes
+- `docs/` - Documentation changes
+- `refactor/` - Code refactoring
+- `test/` - Adding tests
+- `chore/` - Maintenance tasks
+
+### Example Workflow
+
+```bash
+# Create feature branch from main
+git checkout main
+git pull origin main
+git checkout -b feat/add-keyboard-shortcuts
+
+# Make changes and commit
+git add .
+git commit -m "feat: add keyboard shortcuts for common actions"
+
+# Push to your fork
+git push origin feat/add-keyboard-shortcuts
+
+# Create pull request on GitHub
+```
+
+## Commit Conventions
+
+We follow [Conventional Commits](https://www.conventionalcommits.org/) specification:
+
+### Commit Format
+
+```
+<type>: <description>
+
+[optional body]
+
+[optional footer]
+```
+
+### Commit Types
+
+- **feat** - New feature
+- **fix** - Bug fix
+- **docs** - Documentation changes
+- **refactor** - Code refactoring (no functional changes)
+- **test** - Adding or updating tests
+- **chore** - Maintenance tasks (dependencies, config)
+- **perf** - Performance improvements
+- **style** - Code style changes (formatting, semicolons)
+
+### Examples
+
+<CodeGroup>
+```bash Feature
+feat: add support for custom hotkeys
+
+Allow users to configure custom keyboard shortcuts
+for starting/stopping recordings.
+
+Closes #123
+```
+
+```bash Bug Fix
+fix: prevent crash when model file is missing
+
+Check if model file exists before loading to avoid
+panic on startup.
+
+Fixes #456
+```
+
+```bash Breaking Change
+feat!: change settings storage format
+
+BREAKING CHANGE: Settings now use JSON instead of TOML.
+Existing settings will be migrated automatically.
+```
+</CodeGroup>
+
+### Commit Guidelines
+
+- Use present tense ("add feature" not "added feature")
+- Keep first line under 72 characters
+- Reference issues/PRs when applicable
+- Explain **why** not just **what** in the body
+
+## Pull Request Process
+
+<Steps>
+  <Step title="Run Quality Checks">
+    Before creating a PR, ensure all checks pass:
+    
+    ```bash
+    pnpm quality-gate
+    ```
+    
+    This runs:
+    - TypeScript type checking
+    - ESLint
+    - Frontend tests (Vitest)
+    - Backend tests (Cargo test)
+  </Step>
+
+  <Step title="Push Your Branch">
+    ```bash
+    git push origin your-branch-name
+    ```
+  </Step>
+
+  <Step title="Create Pull Request">
+    1. Go to [VoiceTypr repository](https://github.com/moinulmoin/voicetypr)
+    2. Click "New Pull Request"
+    3. Select your branch
+    4. Fill out the PR template
+  </Step>
+
+  <Step title="Address Review Feedback">
+    Respond to code review comments and push updates:
+    
+    ```bash
+    # Make changes
+    git add .
+    git commit -m "refactor: address PR feedback"
+    git push origin your-branch-name
+    ```
+  </Step>
+</Steps>
+
+### Pull Request Template
+
+```markdown
+## Description
+Brief description of changes
+
+## Type of Change
+- [ ] Bug fix
+- [ ] New feature
+- [ ] Breaking change
+- [ ] Documentation update
+
+## Testing
+- [ ] All tests pass (`pnpm quality-gate`)
+- [ ] Added new tests for changes
+- [ ] Manually tested on macOS/Windows
+
+## Screenshots (if applicable)
+[Add screenshots here]
+
+## Related Issues
+Closes #123
+```
+
+## Code Review Expectations
+
+### For Contributors
+
+- **Be responsive** - Reply to feedback within 2-3 days
+- **Be open** - Consider reviewer suggestions
+- **Ask questions** - Clarify unclear feedback
+- **Keep PRs focused** - One feature/fix per PR
+
+### For Reviewers
+
+- **Be constructive** - Suggest improvements, don't just criticize
+- **Be specific** - Explain why changes are needed
+- **Be timely** - Review within 3-5 days
+- **Approve when ready** - Don't block on minor style issues
+
+### Review Checklist
+
+- [ ] Code follows [style guidelines](/development/code-style)
+- [ ] Tests are included and passing
+- [ ] Documentation is updated
+- [ ] No breaking changes (or properly documented)
+- [ ] Performance impact is acceptable
+- [ ] Security concerns are addressed
+
+## Development Guidelines
+
+### Before Committing
+
+Always run quality checks:
+
+```bash
+# Run all checks
+pnpm quality-gate
+
+# Or individually
+pnpm typecheck
+pnpm lint
+pnpm test
+pnpm test:backend
+```
+
+### Pre-Commit Checklist
+
+- [ ] Code is properly formatted (`pnpm format`)
+- [ ] No TypeScript errors (`pnpm typecheck`)
+- [ ] No linting errors (`pnpm lint`)
+- [ ] Tests pass (`pnpm test:all`)
+- [ ] Commit message follows conventions
+- [ ] Changes are documented
+
+### Git Best Practices
+
+```bash
+# Always check status first
+git status
+
+# Review changes before committing
+git diff
+
+# Stage and commit
+git add -A
+git commit -m "feat: your descriptive message"
+
+# Never force push to main
+git push origin your-branch
+```
+
+## Issue Guidelines
+
+### Reporting Bugs
+
+Include:
+
+- **VoiceTypr version** - Check in app settings
+- **Operating system** - macOS version or Windows 10/11
+- **Steps to reproduce** - Clear, numbered steps
+- **Expected behavior** - What should happen
+- **Actual behavior** - What actually happens
+- **Logs** - Check `~/Library/Logs/VoiceTypr/` (macOS)
+
+### Suggesting Features
+
+Include:
+
+- **Use case** - Why is this needed?
+- **Proposed solution** - How should it work?
+- **Alternatives** - Other approaches considered
+- **Examples** - Similar features in other apps
+
+## Communication
+
+### Where to Get Help
+
+- **GitHub Discussions** - General questions and ideas
+- **GitHub Issues** - Bug reports and feature requests
+- **Pull Request Comments** - Code-specific discussions
+
+### Response Times
+
+- **Issues** - Response within 3-5 days
+- **Pull Requests** - Initial review within 5-7 days
+- **Urgent bugs** - Response within 1-2 days
+
+## License
+
+By contributing to VoiceTypr, you agree that your contributions will be licensed under the [GNU Affero General Public License v3.0](https://github.com/moinulmoin/voicetypr/blob/main/LICENSE.md).
+
+## Recognition
+
+All contributors are recognized in:
+
+- GitHub contributors list
+- Release notes for significant contributions
+- Special thanks in major version releases
+
+## Next Steps
+
+- Review [code style guidelines](/development/code-style)
+- Check [architecture overview](/development/architecture)
+- Read [testing documentation](/development/testing)
+- Browse [open issues](https://github.com/moinulmoin/voicetypr/issues)
+
+---
+
+Thank you for contributing to VoiceTypr!

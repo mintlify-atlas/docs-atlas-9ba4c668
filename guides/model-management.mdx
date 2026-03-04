@@ -1,0 +1,297 @@
+---
+title: Model Management
+description: Download, switch, and manage AI models for offline transcription
+---
+
+VoiceTypr uses local AI models for offline transcription. Learn how to download, manage, and optimize your models.
+
+## Understanding Models
+
+VoiceTypr supports multiple AI model engines:
+
+<CardGroup cols={3}>
+  <Card title="Whisper" icon="w">
+    OpenAI's speech recognition model
+    
+    **99+ languages**
+    
+    5 sizes available
+  </Card>
+  
+  <Card title="Parakeet" icon="p">
+    NVIDIA's optimized model (macOS only)
+    
+    **25 languages**
+    
+    Apple Neural Engine
+  </Card>
+  
+  <Card title="Cloud Models" icon="cloud">
+    Soniox and other cloud providers
+    
+    **API required**
+    
+    No download needed
+  </Card>
+</CardGroup>
+
+## Model Characteristics
+
+Each model shows three key metrics:
+
+<Steps>
+  <Step title="Speed Score">
+    How fast the model transcribes (1-10)
+    
+    Higher = faster transcription
+    
+    <Icon icon="zap" /> Speed indicator
+  </Step>
+  
+  <Step title="Accuracy Score">
+    How accurate the transcription is (1-10)
+    
+    Higher = better accuracy
+    
+    <Icon icon="check-circle" /> Accuracy indicator
+  </Step>
+  
+  <Step title="Size">
+    Disk space required for the model
+    
+    Ranges from ~75 MB to ~2.9 GB
+    
+    <Icon icon="hard-drive" /> Size indicator
+  </Step>
+</Steps>
+
+### Model Sizes Explained
+
+| Model | Size | Speed | Accuracy | Best For |
+|-------|------|-------|----------|----------|
+| **Tiny** | ~75 MB | 10 | 4 | Quick testing, limited accuracy needs |
+| **Base** | ~142 MB | 9 | 5 | Fast transcription, casual use |
+| **Small** | ~466 MB | 7 | 7 | Balanced performance |
+| **Medium** | ~1.5 GB | 5 | 8 | High accuracy needed |
+| **Large** | ~2.9 GB | 3 | 10 | Maximum accuracy, professional use |
+
+<Info>
+  <Icon icon="star" /> **Recommended models** are marked with a star icon and offer the best balance of speed and accuracy.
+</Info>
+
+## Downloading Models
+
+<Steps>
+  <Step title="Open Models Tab">
+    Navigate to the Models section in VoiceTypr
+  </Step>
+  
+  <Step title="Choose a Model">
+    Browse "Available to Set Up" section
+    
+    Review speed, accuracy, and size metrics
+  </Step>
+  
+  <Step title="Download">
+    Click the "Download" button
+    
+    Progress is shown with a percentage bar
+  </Step>
+  
+  <Step title="Wait for Verification">
+    After download, model is verified (SHA-256 checksum)
+    
+    "Verifying..." indicator appears briefly
+  </Step>
+  
+  <Step title="Model Ready">
+    Model moves to "Available to Use" section
+    
+    Now selectable for transcription
+  </Step>
+</Steps>
+
+<Tip>
+  Start with a **Small** model for balanced performance. You can download multiple models and switch between them.
+</Tip>
+
+### Download Progress
+
+While downloading:
+
+- **Progress bar** shows download percentage
+- **Cancel button** (X) allows canceling the download
+- **Verifying state** appears after download completes
+
+<Note>
+  **Parakeet models** may show "Downloading..." without a percentage. This is normal - FluidAudio (the download system) doesn't report progress for these models.
+</Note>
+
+## Switching Models
+
+Change your active transcription model at any time:
+
+1. Go to Models tab
+2. Find your desired model in "Available to Use"
+3. Click anywhere on the model card
+4. Active model is highlighted with a colored background
+
+<Warning>
+  Only one model can be active at a time. Switching models takes effect immediately for new recordings.
+</Warning>
+
+## Deleting Models
+
+Free up disk space by removing unused models:
+
+<Steps>
+  <Step title="Locate Model">
+    Find the model in "Available to Use" section
+  </Step>
+  
+  <Step title="Click Remove">
+    Click the "Remove" button on the model card
+  </Step>
+  
+  <Step title="Confirm Deletion">
+    Confirm you want to delete the model
+  </Step>
+  
+  <Step title="Model Removed">
+    Model moves back to "Available to Set Up"
+    
+    Disk space is freed immediately
+  </Step>
+</Steps>
+
+<Warning>
+  If you delete your currently active model, you'll need to select a different model before recording again.
+</Warning>
+
+## Model Verification
+
+VoiceTypr ensures model integrity:
+
+- **SHA-256 checksum** verification after download
+- Corrupted downloads are detected automatically
+- Failed verification prompts re-download
+
+<Info>
+  Verification typically takes 5-10 seconds depending on model size.
+</Info>
+
+## Storage Management
+
+### Where Models are Stored
+
+Models are stored in platform-specific locations:
+
+- **macOS:** `~/Library/Application Support/com.voicetypr.app/models/`
+- **Windows:** `%APPDATA%/com.voicetypr.app/models/`
+
+### Checking Disk Usage
+
+Total space used by all models:
+
+- Tiny only: ~75 MB
+- Tiny + Small: ~541 MB
+- Small + Medium: ~1.97 GB
+- All models: ~5 GB+
+
+<Tip>
+  Keep only the models you use regularly. You can always re-download models later.
+</Tip>
+
+### Cleaning Up
+
+To free disk space:
+
+1. Delete unused models (see above)
+2. Keep 1-2 models that fit your needs
+3. Advanced users: Manually delete from file system (not recommended)
+
+## Cloud Models
+
+Cloud-based models (like Soniox) don't require downloads:
+
+<Steps>
+  <Step title="Add API Key">
+    Click "Add API Key" on the cloud model card
+  </Step>
+  
+  <Step title="Enter Credentials">
+    Provide your API key from the provider
+    
+    Keys are stored securely in system keychain
+  </Step>
+  
+  <Step title="Model Ready">
+    Model moves to "Available to Use"
+    
+    Select to use for transcription
+  </Step>
+</Steps>
+
+<Note>
+  Cloud models require an internet connection for transcription. See provider documentation for pricing and limits.
+</Note>
+
+### Removing Cloud Models
+
+Click "Remove API Key" to disconnect:
+
+- API key is deleted from keychain
+- Model moves back to "Available to Set Up"
+- No local data is deleted
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Choose the Right Model" icon="brain">
+    - **Casual use:** Small model (best balance)
+    - **Professional transcription:** Large model
+    - **Quick notes:** Tiny or Base model
+    - **Limited disk space:** Tiny or Base model
+  </Accordion>
+  
+  <Accordion title="Download Over Wi-Fi" icon="wifi">
+    Models range from 75 MB to 2.9 GB. Use a stable internet connection for downloading.
+  </Accordion>
+  
+  <Accordion title="Preload Before Offline Use" icon="download">
+    Download models while you have internet access. They work completely offline once downloaded.
+  </Accordion>
+  
+  <Accordion title="Test Multiple Models" icon="flask">
+    Try different models to find the best speed/accuracy balance for your use case.
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Download Fails" icon="exclamation-triangle">
+    **Solution:**
+    - Check internet connection
+    - Ensure sufficient disk space (3-4 GB free)
+    - Try canceling and restarting the download
+  </Accordion>
+  
+  <Accordion title="Verification Fails" icon="shield">
+    **Solution:**
+    - Delete the model and re-download
+    - Check disk for errors
+    - Contact support if issue persists
+  </Accordion>
+  
+  <Accordion title="Model Won't Select" icon="mouse-pointer">
+    **Solution:**
+    - Ensure model is fully downloaded and verified
+    - Check that model appears in "Available to Use"
+    - Restart VoiceTypr if needed
+  </Accordion>
+</AccordionGroup>
+
+<Tip>
+  If you encounter persistent issues, try the "Reset App Data" option in Advanced settings (this will delete all models and settings).
+</Tip>

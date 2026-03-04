@@ -1,0 +1,482 @@
+---
+title: 'Troubleshooting'
+description: 'Solutions to common VoiceTypr issues'
+icon: 'wrench'
+---
+
+## Common Issues
+
+### Recording Problems
+
+#### Recording Doesn't Start
+
+**Symptoms**: Hotkey pressed but recording doesn't begin
+
+**Solutions**:
+
+1. **Check microphone permissions**:
+   - **macOS**: System Settings → Privacy & Security → Microphone
+   - **Windows**: Settings → Privacy → Microphone
+   - Ensure VoiceTypr is enabled
+
+2. **Verify hotkey isn't conflicting**:
+   - Open VoiceTypr Settings → Hotkeys
+   - Try a different key combination
+   - Avoid keys used by other apps
+
+3. **Check if model is downloaded**:
+   - Settings → Models
+   - Ensure at least one model shows "Downloaded"
+   - Download a model if needed
+
+4. **Restart VoiceTypr**: Quit completely and relaunch
+
+#### No Audio Captured
+
+**Symptoms**: Recording starts but produces empty/silent transcription
+
+**Solutions**:
+
+1. **Select correct microphone**:
+   - Settings → General → Microphone
+   - Choose your active input device
+   - Test microphone in system settings first
+
+2. **Check input levels**:
+   - Speak during recording
+   - Verify microphone icon shows activity
+   - Increase microphone gain if too quiet
+
+3. **Multi-channel microphone issues**:
+   - Some USB mics with 4+ channels may need configuration
+   - Try a different USB port
+   - Check manufacturer drivers
+
+4. **Recording too short**:
+   - **Push-to-Talk**: Hold for at least 1 second
+   - **Toggle Mode**: Record for at least 3 seconds
+   - VoiceTypr rejects ultra-short recordings
+
+<Warning>
+VoiceTypr automatically rejects recordings shorter than the minimum duration to prevent empty transcriptions.
+</Warning>
+
+#### "Audio Too Quiet" Error
+
+**Symptoms**: Error message about quiet audio (older versions)
+
+**Solutions**:
+
+1. **Update VoiceTypr**: v1.8.0+ removed this validation
+2. **Increase microphone gain** in system settings
+3. **Move closer to microphone**
+4. **Use a better quality microphone**
+
+<Info>
+As of v1.8.0, VoiceTypr no longer rejects "quiet" audio - it normalizes all inputs to optimal levels automatically.
+</Info>
+
+---
+
+### Transcription Issues
+
+#### Slow Transcription
+
+**Symptoms**: Long wait time after recording
+
+**Solutions**:
+
+**For macOS**:
+
+1. **Use smaller models**:
+   - Large/Medium models are slower
+   - Try Small or Base models
+
+2. **Try Parakeet (Apple Silicon only)**:
+   - Settings → Models → Parakeet TDT 0.6B v3
+   - Uses Apple Neural Engine for speed
+   - Download if not already installed
+
+3. **Check Metal acceleration**:
+   - Metal should enable automatically
+   - Update macOS if on older version
+   - Check Console.app for Metal errors
+
+**For Windows**:
+
+1. **Update graphics drivers** (most important!):
+   - [NVIDIA Drivers](https://www.nvidia.com/drivers)
+   - [AMD Drivers](https://www.amd.com/support)
+   - [Intel Drivers](https://www.intel.com/content/www/us/en/support/products/80939/graphics.html)
+
+2. **Verify Vulkan support**:
+   - Check for `C:\Windows\System32\vulkan-1.dll`
+   - Update GPU drivers if missing
+
+3. **Use smaller models**:
+   - Try Tiny or Base for speed
+   - Larger models require more VRAM/RAM
+
+4. **Check GPU detection**:
+   - View logs: `%APPDATA%\com.voicetypr.app\logs`
+   - Look for "Using Vulkan GPU backend"
+   - Falls back to CPU if GPU unavailable
+
+#### Inaccurate Transcriptions
+
+**Symptoms**: Wrong words, missing text, or gibberish
+
+**Solutions**:
+
+1. **Use larger models**:
+   - Small, Medium, or Large have better accuracy
+   - Trade speed for accuracy
+
+2. **Improve recording quality**:
+   - Reduce background noise
+   - Speak clearly and at normal pace
+   - Use a better quality microphone
+
+3. **Enable AI Enhancement** (requires internet):
+   - Settings → AI Enhancement
+   - Configure Groq/Gemini/OpenAI API
+   - Applies grammar fixes and formatting
+
+4. **Set language explicitly**:
+   - Settings → General → Language
+   - Choose your language instead of Auto-detect
+   - Improves accuracy for non-English languages
+
+#### Transcription Timeout
+
+**Symptoms**: "Transcription timed out" error
+
+**Solutions**:
+
+1. **Shorten recordings**: Keep under 2-3 minutes
+2. **Use smaller models**: Large models timeout on long audio
+3. **Check system resources**: Close heavy apps to free RAM
+4. **Update VoiceTypr**: Newer versions have better timeout handling
+
+---
+
+### GPU Acceleration Issues
+
+#### GPU Not Detected (Windows)
+
+**Symptoms**: Slow performance despite having a GPU
+
+**Solutions**:
+
+1. **Update graphics drivers first**:
+   - This fixes 90% of GPU issues
+   - Modern drivers include Vulkan Runtime
+   - Restart after driver update
+
+2. **Verify GPU is dedicated** (not integrated):
+   - Must have 1+ GB VRAM
+   - Integrated graphics may not support Vulkan
+
+3. **Install Vulkan Runtime manually**:
+   - Download [Vulkan SDK](https://vulkan.lunarg.com/sdk/home)
+   - Install runtime components only
+   - Restart VoiceTypr
+
+4. **Check Windows Device Manager**:
+   - Ensure GPU shows without errors
+   - Update driver via Device Manager if needed
+
+#### Metal Acceleration Not Working (macOS)
+
+**Symptoms**: Slower than expected on Mac
+
+**Solutions**:
+
+1. **Update macOS**: Metal requires recent OS version
+2. **Check Console.app** for Metal errors:
+   - Filter by "VoiceTypr" process
+   - Look for Metal initialization errors
+3. **VoiceTypr automatically falls back to CPU** if Metal fails
+4. **Try Parakeet** (Apple Silicon): Uses Apple Neural Engine instead
+
+<Note>
+VoiceTypr always works even if GPU acceleration fails - it automatically falls back to CPU mode.
+</Note>
+
+---
+
+### Model Download Problems
+
+#### Download Stalls or Fails
+
+**Symptoms**: Model download doesn't complete
+
+**Solutions**:
+
+1. **Check internet connection**:
+   - Downloads are 75 MB to 2.9 GB
+   - Stable connection required
+
+2. **Check disk space**:
+   - Ensure 5+ GB free
+   - Models need temporary space during download
+
+3. **Retry download**:
+   - Cancel current download
+   - Click Download again
+
+4. **Reset app data** (last resort):
+   - Settings → Advanced → Reset App Data
+   - Restart VoiceTypr
+   - Re-download models
+
+#### Model Download Shows Complete But Not Available
+
+**Symptoms**: Model shows "Downloaded" but can't be selected
+
+**Solutions**:
+
+1. **Check model file integrity**:
+   - **macOS**: `~/Library/Application Support/com.voicetypr.app/models/`
+   - **Windows**: `%APPDATA%\com.voicetypr.app\models\`
+   - Delete corrupted files
+
+2. **Re-download model**:
+   - Click "Remove" on the model
+   - Wait for deletion to complete
+   - Click "Download" again
+
+3. **Check logs** for errors:
+   - Settings → Help → View Logs
+   - Look for model loading errors
+
+#### Parakeet Model Won't Download (macOS)
+
+**Symptoms**: Parakeet download fails or stalls
+
+**Solutions**:
+
+1. **Verify Apple Silicon Mac**:
+   - Parakeet requires M1/M2/M3+ processor
+   - Intel Macs cannot use Parakeet models
+
+2. **Ensure macOS 13.0+**:
+   - Parakeet requires Ventura or later
+   - Update macOS if needed
+
+3. **Check disk space**: Parakeet is ~500 MB
+
+4. **Clear FluidAudio cache**:
+   ```bash
+   rm -rf ~/Library/Application\ Support/FluidAudio
+   rm -rf ~/Library/Caches/FluidAudio
+   ```
+   - Restart VoiceTypr
+   - Try downloading again
+
+---
+
+### Permission Issues
+
+#### Accessibility Permission Denied (macOS)
+
+**Symptoms**: Text doesn't auto-insert at cursor
+
+**Solutions**:
+
+1. **Grant Accessibility permission**:
+   - System Settings → Privacy & Security → Accessibility
+   - Find VoiceTypr in the list
+   - Toggle **on**
+
+2. **Reset permission**:
+   - Toggle VoiceTypr **off** then **on** again
+   - Restart VoiceTypr
+
+3. **Re-add VoiceTypr**:
+   - Remove VoiceTypr from Accessibility list
+   - Click **+** button
+   - Navigate to Applications → VoiceTypr
+   - Add and enable
+
+4. **Check for macOS bugs**:
+   - Restart Mac
+   - Update to latest macOS version
+
+<Warning>
+Without Accessibility permission, VoiceTypr cannot automatically insert text. You must paste manually from clipboard.
+</Warning>
+
+#### Microphone Permission Denied
+
+**Symptoms**: "Microphone access denied" error
+
+**Solutions**:
+
+**macOS**:
+1. System Settings → Privacy & Security → Microphone
+2. Enable VoiceTypr
+3. Restart VoiceTypr
+
+**Windows**:
+1. Settings → Privacy → Microphone
+2. Enable "Allow apps to access your microphone"
+3. Enable for VoiceTypr specifically
+4. Restart VoiceTypr
+
+---
+
+### Installation Issues
+
+#### App Won't Launch (macOS)
+
+**Symptoms**: "VoiceTypr is damaged and can't be opened"
+
+**Solutions**:
+
+1. **Remove quarantine attribute**:
+   ```bash
+   xattr -cr /Applications/VoiceTypr.app
+   ```
+
+2. **Verify download source**:
+   - Only download from official [GitHub Releases](https://github.com/moinulmoin/voicetypr/releases)
+   - VoiceTypr is signed and notarized
+
+3. **Check macOS version**: Requires macOS 13.0+
+
+4. **Reinstall**:
+   - Delete VoiceTypr from Applications
+   - Re-download DMG
+   - Drag to Applications again
+
+#### Installer Fails (Windows)
+
+**Symptoms**: Installation error or incomplete install
+
+**Solutions**:
+
+1. **Run as Administrator**:
+   - Right-click installer
+   - Select "Run as administrator"
+
+2. **Disable antivirus temporarily**:
+   - Some antivirus blocks NSIS installers
+   - Re-enable after installation
+
+3. **Check disk space**: Ensure 5+ GB free
+
+4. **Install Visual C++ Runtime manually**:
+   - Download [vc_redist.x64.exe](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist)
+   - Install before VoiceTypr
+
+---
+
+### Update Issues
+
+#### Update Check Fails
+
+**Symptoms**: "Failed to check for updates" error
+
+**Solutions**:
+
+1. **Check internet connection**
+2. **Verify GitHub is accessible**: Visit [github.com](https://github.com)
+3. **Try again later**: Temporary network issue
+4. **Manually check releases**: [VoiceTypr Releases](https://github.com/moinulmoin/voicetypr/releases)
+
+#### Update Won't Install
+
+**Symptoms**: Download completes but update fails
+
+**Solutions**:
+
+1. **Quit VoiceTypr completely**:
+   - Ensure menubar/tray icon is gone
+   - Check Activity Monitor/Task Manager
+
+2. **Manually download and install**:
+   - Visit [Releases page](https://github.com/moinulmoin/voicetypr/releases/latest)
+   - Download latest installer
+   - Install over existing version
+
+3. **Check file permissions** (macOS):
+   ```bash
+   ls -l /Applications/VoiceTypr.app
+   ```
+   - Should be writable by your user
+
+---
+
+## Performance Optimization
+
+### Faster Transcription
+
+1. **Enable GPU acceleration**:
+   - Update graphics drivers (Windows)
+   - Use Parakeet on Apple Silicon (macOS)
+
+2. **Use appropriate model size**:
+   - Tiny/Base for speed
+   - Small for balance
+   - Medium/Large for accuracy
+
+3. **Keep recordings short**: Under 1-2 minutes
+
+4. **Close background apps**: Free RAM for VoiceTypr
+
+### Reduce Battery Usage (Laptops)
+
+1. **Use Parakeet on Apple Silicon** (most efficient)
+2. **Use smaller Whisper models**
+3. **Disable AI Enhancement** (requires internet/API calls)
+4. **Close VoiceTypr when not in use**
+
+---
+
+## Getting Help
+
+### Collect Diagnostic Information
+
+1. **Copy System Info**:
+   - Settings → Help → Copy System Info
+   - Includes OS, version, permissions, models
+
+2. **View Logs**:
+   - Settings → Help → View Logs
+   - Recent transcription attempts logged
+
+3. **Check Model Status**:
+   - Settings → Models
+   - Screenshot of downloaded models
+
+### Report an Issue
+
+If you've tried all solutions above:
+
+1. **Open GitHub Issue**: [Create Issue](https://github.com/moinulmoin/voicetypr/issues/new)
+2. **Include**:
+   - System Info (from Help section)
+   - Relevant logs
+   - Steps to reproduce
+   - Expected vs actual behavior
+3. **Describe the problem clearly**
+4. **Wait for response** from maintainers or community
+
+<Tip>
+Before reporting an issue, search [existing issues](https://github.com/moinulmoin/voicetypr/issues) to see if it's already reported.
+</Tip>
+
+### Community Support
+
+- **GitHub Discussions**: [Ask questions](https://github.com/moinulmoin/voicetypr/discussions)
+- **GitHub Issues**: [Report bugs](https://github.com/moinulmoin/voicetypr/issues)
+
+---
+
+## See Also
+
+- [macOS Platform Guide](/platforms/macos)
+- [Windows Platform Guide](/platforms/windows)
+- [GPU Acceleration](/guides/gpu-acceleration)
+- [FAQ](/faq)

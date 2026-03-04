@@ -1,0 +1,307 @@
+---
+title: Building
+description: Build commands for development and production
+---
+
+## Development Builds
+
+### Frontend Only (Vite)
+
+Run the frontend in development mode with hot-reload:
+
+```bash
+pnpm dev
+```
+
+This starts:
+- Vite dev server on `http://localhost:1420`
+- Hot module replacement (HMR)
+- Fast refresh for React components
+
+**Use case**: Frontend-only development when you don't need backend functionality.
+
+### Full Tauri App
+
+Run the complete app (frontend + backend) in development mode:
+
+<CodeGroup>
+```bash npm
+pnpm tauri dev
+```
+
+```bash script
+pnpm tauri:dev
+```
+</CodeGroup>
+
+This starts:
+- Vite dev server on port 1420
+- Rust backend with debug logging
+- Native app window
+- Hot-reload for frontend changes
+- Auto-restart on Rust changes
+
+**Use case**: Full-stack development with backend integration.
+
+## Production Builds
+
+### Frontend Build
+
+Build the frontend for production:
+
+```bash
+pnpm build
+```
+
+This runs:
+1. TypeScript compiler (`tsc`)
+2. Vite production build
+3. Outputs to `dist/`
+
+**Output**:
+- `dist/index.html` - Main window
+- `dist/pill.html` - Recording pill window
+- `dist/toast.html` - Toast notifications
+- `dist/assets/` - Bundled JS/CSS
+
+### Full Native Build
+
+Build the complete native application:
+
+```bash
+pnpm tauri build
+```
+
+This process:
+1. Builds frontend (TypeScript + Vite)
+2. Compiles Rust backend
+3. Builds platform-specific sidecars
+4. Creates native bundle
+5. Signs and notarizes (macOS)
+
+**Output** (macOS):
+- `src-tauri/target/release/bundle/macos/VoiceTypr.app`
+- `src-tauri/target/release/bundle/dmg/VoiceTypr_*.dmg`
+
+**Output** (Windows):
+- `src-tauri/target/release/bundle/msi/VoiceTypr_*.msi`
+- `src-tauri/target/release/VoiceTypr.exe`
+
+## Platform-Specific Builds
+
+### macOS Builds
+
+<CodeGroup>
+```bash Development
+pnpm tauri dev --config src-tauri/tauri.macos.conf.json
+```
+
+```bash Production
+pnpm tauri build --target aarch64-apple-darwin
+```
+
+```bash Universal Binary
+pnpm tauri build --target universal-apple-darwin
+```
+</CodeGroup>
+
+**Notes**:
+- Requires Xcode Command Line Tools
+- Swift sidecar auto-builds via `build.rs`
+- Code signing requires Apple Developer ID
+- Notarization requires app-specific password
+
+### Windows Builds
+
+<CodeGroup>
+```bash x64 (with Vulkan)
+pnpm tauri build --target x86_64-pc-windows-msvc
+```
+
+```bash ARM64
+pnpm tauri build --target aarch64-pc-windows-msvc
+```
+</CodeGroup>
+
+**Notes**:
+- x64 builds include Vulkan GPU acceleration
+- ARM64 builds use CPU-only Whisper
+- Code signing requires Windows certificate
+
+## Sidecar Builds
+
+### Parakeet Swift Sidecar (macOS)
+
+The Parakeet sidecar builds automatically during `tauri build`, but you can build it manually:
+
+```bash
+pnpm sidecar:build
+```
+
+Or directly:
+
+```bash
+cd sidecar/parakeet-swift
+bash build.sh release
+```
+
+**Output**:
+- `sidecar/parakeet-swift/dist/parakeet-sidecar-aarch64-apple-darwin`
+
+**Build process**:
+1. `build.rs` triggers on `cargo build`
+2. Runs `sidecar/parakeet-swift/build.sh`
+3. Compiles Swift with `swift build -c release --arch arm64`
+4. Copies binary to `dist/` with platform suffix
+5. Tauri bundles it into the app
+
+### FFmpeg Sidecar
+
+Ensure FFmpeg binaries are available:
+
+```bash
+pnpm sidecar:ensure-ffmpeg
+```
+
+This downloads platform-specific FFmpeg/FFprobe binaries to `sidecar/ffmpeg/dist/`.
+
+**Required for**:
+- Audio format conversion
+- Cross-platform audio processing
+
+## Build Configurations
+
+### Development Config
+
+`src-tauri/tauri.dev.conf.json`:
+
+```json
+{
+  "build": {
+    "devPath": "http://localhost:1420",
+    "beforeDevCommand": "pnpm dev"
+  }
+}
+```
+
+### Production Config
+
+`src-tauri/tauri.conf.json`:
+
+```json
+{
+  "build": {
+    "distDir": "../dist",
+    "beforeBuildCommand": "pnpm build"
+  }
+}
+```
+
+## CI/CD Builds
+
+Automated build scripts for continuous integration:
+
+<CodeGroup>
+```bash macOS CI
+pnpm ci:mac
+```
+
+```bash Windows CI
+pnpm ci:win
+```
+
+```bash Windows Full CI
+pnpm ci:win:full
+```
+</CodeGroup>
+
+**CI scripts** (`scripts/`):
+- `ci-local-macos.sh` - macOS quality checks + build
+- `ci-local-windows.ps1` - Windows quality checks + build
+
+## Build Optimization
+
+### Release Optimizations
+
+Rust release builds use aggressive optimizations:
+
+```toml
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = 'abort'
+```
+
+### Bundle Size
+
+**macOS app size**: ~120MB
+- Rust binary: ~25MB
+- Frontend assets: ~5MB
+- Parakeet sidecar: ~1.2MB
+- FFmpeg sidecar: ~90MB
+
+**Windows installer size**: ~100MB
+- Executable: ~30MB
+- Frontend assets: ~5MB
+- FFmpeg sidecar: ~65MB
+
+### Reducing Build Time
+
+1. **Use `cargo build` cache**:
+   ```bash
+   # First build: 8-10 minutes
+   # Incremental: 30-60 seconds
+   ```
+
+2. **Frontend-only mode** for UI work:
+   ```bash
+   pnpm dev  # Skip Rust compilation
+   ```
+
+3. **Parallel builds** with `-j` flag:
+   ```bash
+   cargo build --release -j$(nproc)
+   ```
+
+## Troubleshooting
+
+### Build Fails with FFmpeg Error
+
+Ensure FFmpeg sidecars exist:
+
+```bash
+pnpm sidecar:ensure-ffmpeg
+```
+
+### Swift Sidecar Build Fails (macOS)
+
+Verify Swift installation:
+
+```bash
+swift --version
+xcode-select --install
+```
+
+### Vulkan Link Error (Windows)
+
+Install Visual Studio with C++ tools:
+- Visual Studio 2019 or later
+- "Desktop development with C++" workload
+
+### Tauri Build Hangs
+
+Clear build cache:
+
+```bash
+cd src-tauri
+cargo clean
+cd ..
+pnpm tauri build
+```
+
+## Next Steps
+
+- Run [tests](/development/testing) before building
+- Follow [code style](/development/code-style) guidelines
+- Read [contributing guide](/development/contributing) for releases

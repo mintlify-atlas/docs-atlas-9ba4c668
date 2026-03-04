@@ -1,0 +1,378 @@
+---
+title: Audio Commands
+description: Tauri commands for audio recording, transcription, and device management
+icon: microphone
+---
+
+Audio commands handle recording, transcription, audio device selection, and transcription history.
+
+## Recording Commands
+
+### start_recording
+
+Start recording audio from the selected microphone.
+
+```rust
+#[tauri::command]
+pub async fn start_recording(
+    app: AppHandle,
+    state: State<'_, RecorderState>,
+) -> Result<(), String>
+```
+
+**Usage:**
+
+```typescript
+import { invoke } from '@tauri-apps/api/core';
+
+await invoke('start_recording');
+```
+
+**Behavior:**
+
+1. Validates license status and model availability
+2. Loads recording configuration from settings
+3. Creates a timestamped WAV file in the recordings directory
+4. Starts audio capture from the selected (or default) microphone
+5. Emits `recording-state-changed` events during state transitions
+6. Shows pill widget if `pill_indicator_mode` is not `"never"`
+7. Plays system sound if `play_sound_on_recording` is enabled
+
+**Events Emitted:**
+
+- `recording-state-changed`: `{ state: 'starting' }` → `{ state: 'recording' }`
+- `recording-started`: Legacy event for compatibility
+- `audio-level`: Real-time audio level updates (0.0 - 1.0)
+
+**Errors:**
+
+- `"Already recording"` - Recording already in progress
+- `"No speech recognition models installed"` - No models downloaded
+- `"License required to record"` - License expired or missing
+- `"Microphone permission denied"` - Permission not granted
+- `"No microphone found"` - No input device available
+
+**Example with Error Handling:**
+
+```typescript
+try {
+  await invoke('start_recording');
+  console.log('Recording started successfully');
+} catch (error) {
+  if (error === 'Already recording') {
+    console.log('Recording already in progress');
+  } else if (error.includes('model')) {
+    console.error('No models available:', error);
+    // Redirect to model download page
+  } else {
+    console.error('Failed to start recording:', error);
+  }
+}
+```
+
+---
+
+### stop_recording
+
+Stop the current recording and start transcription.
+
+```rust
+#[tauri::command]
+pub async fn stop_recording(
+    app: AppHandle,
+    state: State<'_, RecorderState>,
+) -> Result<String, String>
+```
+
+**Returns:** Transcribed text as a string
+
+**Usage:**
+
+```typescript
+const transcription = await invoke<string>('stop_recording');
+console.log('Transcription:', transcription);
+```
+
+**Behavior:**
+
+1. Stops audio capture and saves WAV file
+2. Plays system sound if `play_sound_on_recording_end` is enabled
+3. Validates audio file (rejects if empty or header-only)
+4. Selects transcription engine based on `current_model_engine` setting
+5. Transcribes audio using selected model
+6. Applies AI enhancement if `ai_enabled` is true
+7. Saves transcription to history
+8. Inserts text at cursor position
+9. Hides pill widget based on `pill_indicator_mode`
+
+**Events Emitted:**
+
+- `recording-state-changed`: `{ state: 'stopping' }` → `{ state: 'transcribing' }` → `{ state: 'idle' }`
+- `transcription-started`: Transcription process began
+- `transcription-complete`: `{ text: string }` - Transcription finished
+
+**Errors:**
+
+- `"Not currently recording"` - No active recording
+- `"No audio captured"` - WAV file is empty
+- `"Model not found"` - Selected model is not available
+- `"Transcription failed"` - Engine returned an error
+
+---
+
+### cancel_recording
+
+Cancel the current recording without transcribing.
+
+```rust
+#[tauri::command]
+pub async fn cancel_recording(
+    app: AppHandle,
+    state: State<'_, RecorderState>,
+) -> Result<(), String>
+```
+
+**Usage:**
+
+```typescript
+await invoke('cancel_recording');
+```
+
+**Behavior:**
+
+1. Sets cancellation flag in AppState
+2. Stops recording if active
+3. Deletes the audio file
+4. Hides pill widget
+5. Returns to idle state without transcribing
+
+**User Trigger:** Pressing ESC during recording (if registered)
+
+---
+
+## Transcription Commands
+
+### transcribe_audio_file
+
+Transcribe an audio file from a path.
+
+```rust
+#[tauri::command]
+pub async fn transcribe_audio_file(
+    app: AppHandle,
+    file_path: String,
+) -> Result<String, String>
+```
+
+<ParamField path="file_path" type="string" required>
+  Absolute path to the audio file (WAV format)
+</ParamField>
+
+**Returns:** Transcribed text
+
+**Usage:**
+
+```typescript
+const transcription = await invoke<string>('transcribe_audio_file', {
+  filePath: '/path/to/audio.wav'
+});
+```
+
+---
+
+## Audio Device Commands
+
+### get_audio_devices
+
+Get a list of available audio input devices.
+
+```rust
+#[tauri::command]
+pub async fn get_audio_devices() -> Result<Vec<String>, String>
+```
+
+**Returns:** Array of device names
+
+**Usage:**
+
+```typescript
+const devices = await invoke<string[]>('get_audio_devices');
+console.log('Available microphones:', devices);
+```
+
+**Example:**
+
+```json
+[
+  "MacBook Pro Microphone",
+  "External USB Microphone",
+  "AirPods Pro"
+]
+```
+
+---
+
+### get_current_audio_device
+
+Get the currently selected audio device.
+
+```rust
+#[tauri::command]
+pub async fn get_current_audio_device(
+    app: AppHandle,
+) -> Result<Option<String>, String>
+```
+
+**Returns:** Device name or `null` if using system default
+
+**Usage:**
+
+```typescript
+const currentDevice = await invoke<string | null>('get_current_audio_device');
+
+if (currentDevice) {
+  console.log('Using:', currentDevice);
+} else {
+  console.log('Using system default microphone');
+}
+```
+
+---
+
+## Transcription History Commands
+
+### save_transcription
+
+Save a transcription to history.
+
+```rust
+#[tauri::command]
+pub async fn save_transcription(
+    app: AppHandle,
+    text: String,
+    model: String,
+) -> Result<(), String>
+```
+
+<ParamField path="text" type="string" required>
+  Transcribed text to save
+</ParamField>
+
+<ParamField path="model" type="string" required>
+  Model name used for transcription
+</ParamField>
+
+**Usage:**
+
+```typescript
+await invoke('save_transcription', {
+  text: 'Hello world',
+  model: 'base.en'
+});
+```
+
+---
+
+### get_transcription_history
+
+Retrieve transcription history.
+
+```rust
+#[tauri::command]
+pub async fn get_transcription_history(
+    app: AppHandle,
+    limit: Option<usize>,
+) -> Result<Vec<TranscriptionEntry>, String>
+```
+
+<ParamField path="limit" type="number" default="100">
+  Maximum number of entries to return
+</ParamField>
+
+**Returns:** Array of transcription entries
+
+```typescript
+interface TranscriptionEntry {
+  id: string;
+  text: string;
+  model: string;
+  timestamp: number; // Unix timestamp
+}
+```
+
+**Usage:**
+
+```typescript
+const history = await invoke<TranscriptionEntry[]>('get_transcription_history', {
+  limit: 50
+});
+
+history.forEach(entry => {
+  console.log(`[${new Date(entry.timestamp * 1000).toISOString()}] ${entry.text}`);
+});
+```
+
+---
+
+### cleanup_old_transcriptions
+
+Delete transcriptions older than the configured retention period.
+
+```rust
+#[tauri::command]
+pub async fn cleanup_old_transcriptions(
+    app: AppHandle,
+) -> Result<usize, String>
+```
+
+**Returns:** Number of transcriptions deleted
+
+**Usage:**
+
+```typescript
+const deleted = await invoke<number>('cleanup_old_transcriptions');
+console.log(`Cleaned up ${deleted} old transcriptions`);
+```
+
+**Behavior:**
+
+- Reads `transcription_cleanup_days` from settings
+- If `null`, keeps all transcriptions (no cleanup)
+- If set, deletes transcriptions older than N days
+
+---
+
+## State Management
+
+Audio commands emit state changes through the `recording-state-changed` event:
+
+```typescript
+import { listen } from '@tauri-apps/api/event';
+
+const unlisten = await listen<{ state: RecordingState; error?: string }>(
+  'recording-state-changed',
+  (event) => {
+    console.log('State:', event.payload.state);
+    if (event.payload.error) {
+      console.error('Error:', event.payload.error);
+    }
+  }
+);
+```
+
+### Recording States
+
+| State | Description |
+|-------|-------------|
+| `idle` | No recording in progress |
+| `starting` | Initializing microphone |
+| `recording` | Actively recording audio |
+| `stopping` | Finalizing audio file |
+| `transcribing` | Processing audio to text |
+| `error` | An error occurred (check `error` field) |
+
+## See Also
+
+- [Recording Hook](/api/hooks/recording) - React hook wrapping these commands
+- [Settings Commands](/api/commands/settings) - Configure audio settings
+- [Model Commands](/api/commands/model) - Manage transcription models

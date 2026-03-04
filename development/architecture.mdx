@@ -1,0 +1,310 @@
+---
+title: Architecture
+description: Understanding VoiceTypr's Tauri v2 architecture and design patterns
+---
+
+## Overview
+
+VoiceTypr is built with **Tauri v2**, combining a **Rust backend** for performance-critical operations with a **React 19 frontend** for the user interface.
+
+```
+┌─────────────────────────────────────────────┐
+│         React 19 Frontend (TypeScript)       │
+│  ┌─────────────────────────────────────┐   │
+│  │  Components (shadcn/ui + Tailwind)   │   │
+│  │  State (React hooks + Zustand)       │   │
+│  │  Tauri API (@tauri-apps/api)         │   │
+│  └─────────────────────────────────────┘   │
+└─────────────────────────────────────────────┘
+                    ↕ IPC
+┌─────────────────────────────────────────────┐
+│          Rust Backend (Tauri v2)            │
+│  ┌─────────────────────────────────────┐   │
+│  │  Commands (invoke handlers)          │   │
+│  │  Audio (CoreAudio/CPAL)              │   │
+│  │  Whisper (AI transcription)          │   │
+│  │  Parakeet (Swift sidecar)            │   │
+│  │  State Management                    │   │
+│  └─────────────────────────────────────┘   │
+└─────────────────────────────────────────────┘
+```
+
+## Project Structure
+
+### Frontend (`src/`)
+
+```
+src/
+├── components/          # UI components
+│   ├── ui/              # shadcn/ui primitives (Button, Input, etc.)
+│   ├── tabs/            # Tab panel components (Settings, Models, etc.)
+│   └── sections/        # Reusable page sections
+├── contexts/            # React context providers
+├── hooks/               # Custom React hooks
+│   ├── useTranscription.ts
+│   ├── useRecording.ts
+│   └── useSettings.ts
+├── lib/                 # Shared utilities
+├── utils/               # Helper functions
+├── services/            # External service integrations
+├── state/               # State management (Zustand stores)
+└── test/                # Integration tests
+```
+
+### Backend (`src-tauri/src/`)
+
+```
+src-tauri/src/
+├── commands/            # Tauri command handlers
+│   ├── recording.rs
+│   ├── transcription.rs
+│   ├── settings.rs
+│   └── models.rs
+├── audio/               # Audio recording (CoreAudio/CPAL)
+│   ├── recorder.rs
+│   └── processor.rs
+├── whisper/             # Whisper AI integration
+│   ├── engine.rs
+│   └── model.rs
+├── ai/                  # AI model management
+├── parakeet/            # Parakeet sidecar integration
+├── state/               # Backend state management
+├── utils/               # Rust utilities
+└── tests/               # Rust unit tests
+```
+
+## Key Modules
+
+### Frontend Modules
+
+#### Components
+- **`components/ui/`** - shadcn/ui components (Button, Dialog, Select, etc.)
+- **`components/tabs/`** - Main UI panels (RecordingTab, ModelsTab, SettingsTab)
+- **`components/sections/`** - Reusable sections (ModelCard, HotkeySelector)
+
+#### State Management
+- **React hooks** - Local component state and side effects
+- **Zustand stores** - Global app state (`state/`)
+- **Tauri events** - Backend-to-frontend communication
+
+#### Custom Hooks
+- **`useTranscription`** - Manage transcription lifecycle
+- **`useRecording`** - Handle audio recording state
+- **`useSettings`** - Persist and sync settings
+- **`useModelDownload`** - Track model download progress
+
+### Backend Modules
+
+#### Commands (`commands/`)
+Tauri command handlers invoked from the frontend:
+
+```rust
+#[tauri::command]
+async fn start_recording(state: State<'_, AppState>) -> Result<(), String> {
+    // Command implementation
+}
+```
+
+#### Audio (`audio/`)
+- **CoreAudio** (macOS) - Native audio capture
+- **CPAL** (Windows) - Cross-platform audio library
+- Real-time audio processing and buffering
+
+#### Whisper (`whisper/`)
+- Whisper AI model management
+- Transcription engine with Metal (macOS) or Vulkan (Windows) acceleration
+- Model preloading and caching
+
+#### Parakeet (`parakeet/`)
+- Swift sidecar integration (macOS only)
+- Apple Neural Engine acceleration
+- IPC communication with sidecar process
+
+#### State (`state/`)
+- Thread-safe state management with `Arc<Mutex<T>>`
+- Persistent settings storage
+- Model cache management
+
+## Communication Patterns
+
+### Frontend → Backend (Commands)
+
+Frontend invokes backend commands using `@tauri-apps/api`:
+
+```typescript
+import { invoke } from '@tauri-apps/api/core';
+
+// Invoke a command
+const result = await invoke('start_recording');
+
+// With parameters
+const text = await invoke('transcribe_audio', {
+  audioPath: '/path/to/audio.wav',
+  modelName: 'base'
+});
+```
+
+### Backend → Frontend (Events)
+
+Backend emits events to notify the frontend:
+
+```rust
+// Emit event from Rust
+app.emit("transcription_progress", {
+    progress: 0.5
+})?;
+```
+
+```typescript
+// Listen in React
+import { listen } from '@tauri-apps/api/event';
+
+const unlisten = await listen('transcription_progress', (event) => {
+  console.log('Progress:', event.payload.progress);
+});
+```
+
+### Event Coordination
+
+The `EventCoordinator` class manages event subscriptions:
+
+```typescript
+class EventCoordinator {
+  private unlisteners: UnlistenFn[] = [];
+
+  async subscribe(event: string, handler: (data: any) => void) {
+    const unlisten = await listen(event, handler);
+    this.unlisteners.push(unlisten);
+  }
+
+  cleanup() {
+    this.unlisteners.forEach(fn => fn());
+  }
+}
+```
+
+## State Management
+
+### Frontend State
+
+**React Hooks** for local state:
+```typescript
+const [isRecording, setIsRecording] = useState(false);
+```
+
+**Zustand** for global state:
+```typescript
+import { create } from 'zustand';
+
+export const useAppStore = create((set) => ({
+  settings: {},
+  updateSettings: (newSettings) => set({ settings: newSettings })
+}));
+```
+
+### Backend State
+
+**Shared state** with `Arc<Mutex<T>>`:
+```rust
+pub struct AppState {
+    pub recording_state: Arc<Mutex<RecordingState>>,
+    pub whisper_engine: Arc<Mutex<Option<WhisperEngine>>>,
+}
+```
+
+**Tauri State** for command handlers:
+```rust
+#[tauri::command]
+fn get_state(state: State<'_, AppState>) -> Result<String, String> {
+    // Access shared state
+}
+```
+
+## Platform-Specific Features
+
+### macOS
+- **NSPanel** - Pill window that doesn't steal focus
+- **CoreAudio** - Native audio capture
+- **Metal acceleration** - GPU-accelerated Whisper
+- **Parakeet Swift sidecar** - Apple Neural Engine support
+- **Global hotkeys** - System-wide recording trigger
+
+### Windows
+- **CPAL audio** - Cross-platform audio capture
+- **Vulkan acceleration** - GPU-accelerated Whisper (x64 only)
+- **Global hotkeys** - System-wide recording trigger
+- **Auto-updates** - Built-in updater
+
+## Security Architecture
+
+### Tauri Capabilities
+
+Permissions defined in `src-tauri/capabilities/`:
+
+```json
+{
+  "permissions": [
+    "core:default",
+    "fs:read-file",
+    "shell:execute",
+    "global-shortcut:all"
+  ]
+}
+```
+
+### Secure Storage
+
+API keys encrypted using AES-GCM with PBKDF2 key derivation:
+
+```rust
+pub struct SecureStore {
+    cipher: Aes256Gcm,
+    // ...
+}
+```
+
+## Performance Considerations
+
+### Model Preloading
+
+Whisper models preload on app startup to reduce first-transcription latency:
+
+```rust
+// Preload model in background
+tokio::spawn(async move {
+    let _ = whisper_engine.load_model("base").await;
+});
+```
+
+### Clipboard Preservation
+
+Text insertion preserves user clipboard, restoring after 500ms:
+
+```rust
+// Save clipboard
+let original = get_clipboard();
+// Insert text
+insert_text(transcription);
+// Restore after delay
+tokio::time::sleep(Duration::from_millis(500)).await;
+set_clipboard(original);
+```
+
+### Async Commands
+
+All I/O operations use async Rust for non-blocking execution:
+
+```rust
+#[tauri::command]
+async fn download_model(url: String) -> Result<(), String> {
+    // Async HTTP download
+    let response = reqwest::get(url).await?;
+    // ...
+}
+```
+
+## Next Steps
+
+- Learn how to [build the app](/development/building)
+- Understand the [testing strategy](/development/testing)
+- Review [code style guidelines](/development/code-style)

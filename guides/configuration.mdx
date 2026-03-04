@@ -1,0 +1,228 @@
+---
+title: Configuration
+description: Configure VoiceTypr settings for optimal recording and transcription
+---
+
+VoiceTypr offers extensive configuration options to customize your transcription experience. All settings are accessible from the Settings tab in the main window.
+
+## Recording Settings
+
+### Recording Mode
+
+Choose how you want to trigger recordings:
+
+<Tabs>
+  <Tab title="Toggle Mode">
+    Press the hotkey once to start recording, press again to stop.
+    
+    **Best for:**
+    - Longer dictations
+    - When you need hands-free recording
+    - Quick start/stop control
+    
+    ```
+    Press hotkey → Start recording
+    Press hotkey again → Stop recording
+    ```
+  </Tab>
+  
+  <Tab title="Push-to-Talk Mode">
+    Hold the hotkey to record, release to stop.
+    
+    **Best for:**
+    - Quick voice commands
+    - Short transcriptions
+    - When you want immediate control
+    
+    ```
+    Hold hotkey → Recording
+    Release hotkey → Stop and transcribe
+    ```
+  </Tab>
+</Tabs>
+
+### Hotkey Configuration
+
+Set your preferred keyboard shortcut for triggering recordings:
+
+1. Click the hotkey input field
+2. Press your desired key combination
+3. VoiceTypr validates the combination
+
+<Warning>
+  Some system-reserved shortcuts cannot be used. VoiceTypr will notify you if your chosen combination conflicts with system shortcuts.
+</Warning>
+
+**Example combinations:**
+- `Command+Shift+Space` (macOS)
+- `Alt+Space` (Windows)
+- `Control+Shift+V`
+
+### Microphone Selection
+
+Choose which audio input device to use:
+
+1. Go to Settings → Recording section
+2. Select your preferred microphone from the dropdown
+3. Changes apply immediately
+
+<Tip>
+  If you switch audio devices frequently, VoiceTypr will remember your selection. If a previously selected device is no longer available, it automatically switches to the default.
+</Tip>
+
+## Language Configuration
+
+VoiceTypr supports **99+ languages** with automatic detection.
+
+### Selecting Your Language
+
+1. Go to Models tab
+2. Choose your spoken language from the dropdown
+3. Speak in that language during recordings
+
+<Info>
+  **Language Auto-detection**: If set to "Auto", Whisper automatically detects the spoken language. This works best for single-language recordings.
+</Info>
+
+### Translation to English
+
+For English-only models (models ending in `.en`):
+
+- Only English language option is available
+- Optimized for faster English transcription
+- Higher accuracy for English speech
+
+<Note>
+  Parakeet models have limited language support (25 European languages). See [Multi-Language Support](/guides/multi-language) for details.
+</Note>
+
+## Audio Feedback Settings
+
+Control sound notifications during recording:
+
+<AccordionGroup>
+  <Accordion title="Sound on Recording Start" icon="play" defaultOpen>
+    Play an audio cue when recording begins.
+    
+    **Default:** Enabled
+    
+    Helps confirm that VoiceTypr is listening.
+  </Accordion>
+  
+  <Accordion title="Sound on Recording End" icon="stop">
+    Play an audio cue when recording stops.
+    
+    **Default:** Enabled
+    
+    Confirms your recording was captured.
+  </Accordion>
+  
+  <Accordion title="Pause Media During Recording" icon="pause">
+    Automatically pause playing music or videos when recording starts.
+    
+    **Default:** Enabled
+    
+    Prevents background audio from interfering with transcription.
+  </Accordion>
+</AccordionGroup>
+
+## Recording Indicator Settings
+
+The recording indicator (pill window) provides visual feedback:
+
+### Visibility Mode
+
+<CardGroup cols={3}>
+  <Card title="When Recording" icon="circle-dot">
+    Show indicator only while actively recording (default)
+  </Card>
+  
+  <Card title="Always" icon="eye">
+    Keep indicator visible at all times
+  </Card>
+  
+  <Card title="Never" icon="eye-slash">
+    Hide indicator completely
+  </Card>
+</CardGroup>
+
+### Position and Offset
+
+Customize where the indicator appears on screen:
+
+**Positions:**
+- Top Left, Top Center, Top Right
+- Bottom Left, Bottom Center, Bottom Right
+
+**Edge Offset:**
+- Adjust distance from screen edge (10-50 pixels)
+- Use the slider in Settings
+
+<Tip>
+  Position the indicator where it won't obstruct your workflow. Bottom center is recommended for most users.
+</Tip>
+
+## Clipboard Settings
+
+### Keep Transcript in Clipboard
+
+**Default:** Disabled
+
+When enabled:
+- Transcribed text remains in clipboard after insertion
+- Allows manual pasting in multiple locations
+- Your previous clipboard content is not restored
+
+When disabled:
+- Transcribed text is inserted automatically
+- Previous clipboard content is restored after 500ms
+
+<Note>
+  VoiceTypr preserves your clipboard by default. Text is temporarily copied for insertion, then your original clipboard is restored.
+</Note>
+
+## Startup and Updates
+
+### Launch at Startup
+
+Automatically start VoiceTypr when you log in:
+
+1. Go to Settings
+2. Enable "Launch at Startup"
+3. VoiceTypr starts minimized to menubar
+
+### Automatic Updates
+
+**Default:** Enabled
+
+VoiceTypr checks for updates automatically and notifies you when new versions are available.
+
+## Cleanup and Maintenance
+
+### Transcription History Cleanup
+
+<Info>
+  VoiceTypr can automatically delete old transcription history to save disk space.
+</Info>
+
+Configure automatic cleanup:
+- Set retention period (e.g., 30 days)
+- Old transcriptions are deleted automatically
+- This only affects history, not models
+
+<Note>
+  This feature is configured in the app settings. Check `transcription_cleanup_days` in your settings.
+</Note>
+
+## Advanced Configuration
+
+For advanced settings including:
+- Permission management
+- App data reset
+- Onboarding reset
+
+See the Advanced tab in VoiceTypr settings.
+
+<Warning>
+  Resetting app data deletes all transcription history, downloaded models, and settings. This action cannot be undone.
+</Warning>

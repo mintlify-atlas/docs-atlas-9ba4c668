@@ -1,0 +1,241 @@
+---
+title: API Reference Overview
+description: Complete API reference for developers building with VoiceTypr's Tauri commands and React hooks
+icon: code
+---
+
+VoiceTypr provides a comprehensive API for voice-to-text transcription through Tauri commands (Rust backend) and React hooks (TypeScript frontend).
+
+## Architecture
+
+VoiceTypr uses a **Tauri v2** architecture with:
+
+- **Rust Backend**: Handles audio recording, transcription, model management, and system integration
+- **React 19 Frontend**: Provides UI components and state management using hooks
+- **IPC Communication**: Frontend calls backend via `invoke()`, backend emits events to frontend
+
+### Communication Flow
+
+```typescript
+import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
+
+// Call a Tauri command
+const result = await invoke('start_recording');
+
+// Listen to backend events
+const unlisten = await listen('recording-started', (event) => {
+  console.log('Recording started:', event.payload);
+});
+```
+
+## Using Tauri Commands
+
+Tauri commands are Rust functions exposed to the frontend via `invoke()`:
+
+```typescript
+import { invoke } from '@tauri-apps/api/core';
+
+// Simple command (no parameters)
+await invoke('start_recording');
+
+// Command with parameters
+await invoke('download_model', { 
+  modelName: 'base.en' 
+});
+
+// Command with return value
+const settings = await invoke<AppSettings>('get_settings');
+```
+
+### Error Handling
+
+All commands return `Result<T, String>` in Rust, which becomes a Promise in TypeScript:
+
+```typescript
+try {
+  await invoke('start_recording');
+} catch (error) {
+  console.error('Failed to start recording:', error);
+  // error is a string with the error message
+}
+```
+
+## Using React Hooks
+
+VoiceTypr provides custom hooks that encapsulate Tauri commands and event handling:
+
+```typescript
+import { useRecording } from '@/hooks/useRecording';
+
+function RecordingButton() {
+  const { state, startRecording, stopRecording } = useRecording();
+  
+  return (
+    <button onClick={startRecording} disabled={state !== 'idle'}>
+      {state === 'recording' ? 'Recording...' : 'Start Recording'}
+    </button>
+  );
+}
+```
+
+### Hook Benefits
+
+- Automatic state synchronization with backend
+- Built-in event listener cleanup
+- Type-safe TypeScript interfaces
+- React-friendly state management
+
+## Event System
+
+The backend emits events that the frontend can listen to:
+
+### Core Events
+
+| Event | Payload | Description |
+|-------|---------|-------------|
+| `recording-state-changed` | `{ state: RecordingState, error?: string }` | Recording state transitions |
+| `download-progress` | `{ model: string, progress: number, downloaded: number, total: number }` | Model download progress |
+| `model-downloaded` | `{ model: string, engine: string }` | Model download complete |
+| `transcription-complete` | `{ text: string }` | Transcription finished |
+
+### Event Listeners
+
+```typescript
+import { listen } from '@tauri-apps/api/event';
+
+const unlisten = await listen('recording-state-changed', (event) => {
+  console.log('New state:', event.payload.state);
+});
+
+// Clean up when component unmounts
+return () => {
+  unlisten();
+};
+```
+
+## API Categories
+
+<CardGroup cols={2}>
+  <Card title="Audio Commands" icon="microphone" href="/api/commands/audio">
+    Recording, transcription, and audio device management
+  </Card>
+  
+  <Card title="Model Commands" icon="download" href="/api/commands/model">
+    Download, delete, and manage speech recognition models
+  </Card>
+  
+  <Card title="AI Commands" icon="sparkles" href="/api/commands/ai">
+    AI-powered transcription enhancement and provider management
+  </Card>
+  
+  <Card title="Settings Commands" icon="sliders" href="/api/commands/settings">
+    Application settings and configuration management
+  </Card>
+  
+  <Card title="Recording Hook" icon="circle-dot" href="/api/hooks/recording">
+    React hook for recording state and controls
+  </Card>
+  
+  <Card title="Model Management Hook" icon="boxes-stacked" href="/api/hooks/model-management">
+    React hook for managing speech recognition models
+  </Card>
+  
+  <Card title="Permission Hooks" icon="shield-check" href="/api/hooks/permissions">
+    React hooks for system permissions (microphone, accessibility)
+  </Card>
+</CardGroup>
+
+## Type Definitions
+
+### RecordingState
+
+```typescript
+type RecordingState = 'idle' | 'starting' | 'recording' | 'stopping' | 'transcribing' | 'error';
+```
+
+### AppSettings
+
+See [Settings Commands](/api/commands/settings) for the complete AppSettings interface.
+
+### ModelInfo
+
+```typescript
+interface ModelInfo {
+  name: string;
+  display_name: string;
+  size: number;
+  downloaded: boolean;
+  engine: 'whisper' | 'parakeet' | 'soniox';
+  kind: 'local' | 'cloud';
+  recommended: boolean;
+  speed_score: number;
+  accuracy_score: number;
+}
+```
+
+## Best Practices
+
+### 1. Use Hooks for Components
+
+Prefer React hooks over direct `invoke()` calls in components:
+
+```typescript
+// Good: Uses hook with automatic cleanup
+const { state, startRecording } = useRecording();
+
+// Avoid: Manual command + event management
+const start = () => invoke('start_recording');
+```
+
+### 2. Handle Loading States
+
+Always handle loading and error states:
+
+```typescript
+const { models, isLoading } = useModelManagement();
+
+if (isLoading) {
+  return <LoadingSpinner />;
+}
+```
+
+### 3. Clean Up Event Listeners
+
+Always clean up event listeners in useEffect:
+
+```typescript
+useEffect(() => {
+  const unlisten = listen('event-name', handler);
+  
+  return () => {
+    unlisten.then(fn => fn());
+  };
+}, []);
+```
+
+### 4. Use Type Safety
+
+Leverage TypeScript types for commands:
+
+```typescript
+interface DownloadModelArgs {
+  modelName: string;
+}
+
+await invoke<void>('download_model', { 
+  modelName: 'base.en' 
+} as DownloadModelArgs);
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Audio Commands" icon="arrow-right" href="/api/commands/audio">
+    Start with audio recording and transcription
+  </Card>
+  
+  <Card title="Recording Hook" icon="arrow-right" href="/api/hooks/recording">
+    Build a recording interface with React
+  </Card>
+</CardGroup>

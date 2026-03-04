@@ -1,0 +1,317 @@
+---
+title: GPU Acceleration
+description: Enable hardware acceleration for 5-10x faster transcription on Windows
+---
+
+VoiceTypr uses hardware acceleration to dramatically speed up transcription. GPU acceleration can make transcription **5-10x faster** than CPU-only processing.
+
+<Info>
+  GPU acceleration is **automatic** - VoiceTypr detects and uses your GPU if available. No manual configuration required.
+</Info>
+
+## Windows GPU Support
+
+VoiceTypr supports three major GPU vendors on Windows:
+
+<CardGroup cols={3}>
+  <Card title="NVIDIA" icon="n" href="https://www.nvidia.com/drivers">
+    GeForce, RTX, Quadro
+    
+    **Most common**
+    
+    Best performance
+  </Card>
+  
+  <Card title="AMD" icon="a" href="https://www.amd.com/support">
+    Radeon series
+    
+    **Good support**
+    
+    Solid performance
+  </Card>
+  
+  <Card title="Intel" icon="i" href="https://www.intel.com/content/www/us/en/support/products/80939/graphics.html">
+    Iris Xe, Arc series
+    
+    **Newer GPUs**
+    
+    Good for laptops
+  </Card>
+</CardGroup>
+
+### How It Works
+
+1. **Automatic Detection**: VoiceTypr checks for compatible GPUs on startup
+2. **Automatic Selection**: If a GPU is found, it's used automatically
+3. **CPU Fallback**: If no GPU is available, CPU processing is used
+
+<Warning>
+  No user intervention needed - VoiceTypr handles everything automatically.
+</Warning>
+
+## Driver Requirements
+
+Up-to-date graphics drivers are **critical** for GPU acceleration:
+
+### NVIDIA Drivers
+
+<Steps>
+  <Step title="Check Current Version">
+    Right-click desktop → NVIDIA Control Panel → Help → System Information
+  </Step>
+  
+  <Step title="Download Latest Drivers">
+    Visit [NVIDIA Drivers](https://www.nvidia.com/drivers)
+    
+    Select your GPU model
+  </Step>
+  
+  <Step title="Install and Restart">
+    Run the installer
+    
+    Restart your computer
+  </Step>
+</Steps>
+
+**Recommended versions:**
+- GeForce Game Ready Driver 500+ 
+- Studio Driver 500+
+
+### AMD Drivers
+
+<Steps>
+  <Step title="Check Current Version">
+    Right-click desktop → AMD Software → Settings → System
+  </Step>
+  
+  <Step title="Download Latest Drivers">
+    Visit [AMD Support](https://www.amd.com/support)
+    
+    Auto-detect your GPU or select manually
+  </Step>
+  
+  <Step title="Install and Restart">
+    Run AMD Software Installer
+    
+    Restart your computer
+  </Step>
+</Steps>
+
+**Recommended versions:**
+- Adrenalin 22.0+
+- PRO Driver 22.0+
+
+### Intel Drivers
+
+<Steps>
+  <Step title="Check Current Version">
+    Right-click desktop → Intel Graphics Command Center → System
+  </Step>
+  
+  <Step title="Download Latest Drivers">
+    Visit [Intel Graphics Drivers](https://www.intel.com/content/www/us/en/support/products/80939/graphics.html)
+    
+    Use Driver & Support Assistant for auto-detection
+  </Step>
+  
+  <Step title="Install and Restart">
+    Run the installer
+    
+    Restart your computer
+  </Step>
+</Steps>
+
+**Recommended versions:**
+- Intel Arc Graphics Driver 30.0+
+- Intel Iris Xe Graphics Driver 30.0+
+
+<Tip>
+  Enable Windows Update to automatically receive driver updates for Intel integrated graphics.
+</Tip>
+
+## macOS Metal Acceleration
+
+All Macs include automatic hardware acceleration:
+
+### Metal GPU Acceleration
+
+- **All Macs**: Whisper models use Metal GPU acceleration
+- **Automatic**: No configuration needed
+- **Performance**: 3-5x faster than CPU on Apple Silicon, 2-3x on Intel
+
+### Apple Neural Engine
+
+- **Apple Silicon only**: Parakeet models use the Neural Engine
+- **Ultra-fast**: Optimized specifically for Apple Silicon
+- **Automatic**: Activated when Parakeet models are selected
+
+<Info>
+  macOS users always have hardware acceleration - Metal is built into every Mac.
+</Info>
+
+## Performance Expectations
+
+### With GPU Acceleration (Windows)
+
+| Model | CPU Time | GPU Time | Speedup |
+|-------|----------|----------|----------|
+| Tiny | 2.5s | 0.3s | **8x faster** |
+| Base | 4s | 0.5s | **8x faster** |
+| Small | 8s | 1s | **8x faster** |
+| Medium | 18s | 2.5s | **7x faster** |
+| Large | 35s | 5s | **7x faster** |
+
+<Note>
+  Times shown for 30-second audio recording. Actual performance varies by GPU model.
+</Note>
+
+### Metal Performance (macOS)
+
+| Mac Type | Model | Speedup vs CPU |
+|----------|-------|----------------|
+| **Apple Silicon** (M1/M2/M3) | Whisper | 4-5x faster |
+| **Apple Silicon** | Parakeet | 6-8x faster |
+| **Intel Mac** | Whisper | 2-3x faster |
+
+## CPU Fallback
+
+If GPU acceleration is unavailable, VoiceTypr automatically uses CPU:
+
+<AccordionGroup>
+  <Accordion title="When CPU is Used" icon="microchip" defaultOpen>
+    - No compatible GPU detected
+    - Graphics drivers are outdated or missing
+    - GPU is busy with other tasks
+    - GPU memory is insufficient
+  </Accordion>
+  
+  <Accordion title="CPU Performance" icon="gauge">
+    Still fully functional, just slower:
+    - Tiny/Base: Acceptable for short recordings
+    - Small: Noticeable delay on longer recordings
+    - Medium/Large: Can take 30-60 seconds for transcription
+  </Accordion>
+  
+  <Accordion title="Improving CPU Performance" icon="arrow-up">
+    - Use smaller models (Tiny, Base, Small)
+    - Close other applications during transcription
+    - Upgrade to a system with GPU support
+  </Accordion>
+</AccordionGroup>
+
+<Warning>
+  VoiceTypr **always works** - it automatically falls back to CPU if GPU is unavailable. You'll never see an error.
+</Warning>
+
+## Troubleshooting GPU Issues
+
+<AccordionGroup>
+  <Accordion title="Slow Transcription" icon="hourglass">
+    **Symptoms:** Transcription takes longer than expected
+    
+    **Solutions:**
+    1. Update graphics drivers (see links above)
+    2. Check if GPU is being used by other apps (games, video editing)
+    3. Restart VoiceTypr to re-detect GPU
+    4. Verify GPU is enabled in Device Manager (Windows)
+  </Accordion>
+  
+  <Accordion title="GPU Not Detected" icon="search">
+    **Symptoms:** CPU fallback being used despite having a GPU
+    
+    **Solutions:**
+    1. Update graphics drivers (most common fix)
+    2. Check GPU is enabled in BIOS/UEFI
+    3. Verify GPU appears in Device Manager (Windows)
+    4. Ensure GPU has sufficient memory (2GB+ recommended)
+  </Accordion>
+  
+  <Accordion title="Driver Installation Fails" icon="xmark">
+    **Symptoms:** Can't install or update graphics drivers
+    
+    
+    **Solutions:**
+    1. Uninstall old drivers completely first (use DDU tool)
+    2. Download drivers directly from manufacturer (not Windows Update)
+    3. Disable antivirus temporarily during installation
+    4. Check Windows Update for chipset driver updates
+  </Accordion>
+</AccordionGroup>
+
+## Verifying GPU Acceleration
+
+How to confirm GPU is being used:
+
+### Windows
+
+<Steps>
+  <Step title="Open Task Manager">
+    Press `Ctrl+Shift+Esc` or right-click taskbar
+  </Step>
+  
+  <Step title="Go to Performance Tab">
+    Select GPU section
+  </Step>
+  
+  <Step title="Start Transcription">
+    Trigger a recording in VoiceTypr
+  </Step>
+  
+  <Step title="Watch GPU Usage">
+    GPU usage should spike during transcription
+    
+    Look for "CUDA" or "Compute" activity
+  </Step>
+</Steps>
+
+### macOS
+
+<Steps>
+  <Step title="Open Activity Monitor">
+    Applications → Utilities → Activity Monitor
+  </Step>
+  
+  <Step title="Select GPU History">
+    Window → GPU History
+  </Step>
+  
+  <Step title="Start Transcription">
+    Trigger a recording in VoiceTypr
+  </Step>
+  
+  <Step title="Watch GPU Usage">
+    GPU usage should increase during transcription
+  </Step>
+</Steps>
+
+## Best Practices
+
+<Steps>
+  <Step title="Keep Drivers Updated">
+    Update graphics drivers every 2-3 months
+    
+    Enable automatic updates if available
+  </Step>
+  
+  <Step title="Close Heavy Apps">
+    Pause games or video rendering during transcription
+    
+    Ensures GPU resources are available
+  </Step>
+  
+  <Step title="Use Larger Models">
+    With GPU acceleration, you can use Large models without performance penalty
+    
+    Better accuracy at similar speeds to CPU+Small
+  </Step>
+  
+  <Step title="Monitor Temperature">
+    Ensure GPU cooling is adequate
+    
+    Overheating can reduce performance
+  </Step>
+</Steps>
+
+<Tip>
+  With GPU acceleration enabled, the **Large** model transcribes faster than the **Tiny** model on CPU. Take advantage of better accuracy!
+</Tip>

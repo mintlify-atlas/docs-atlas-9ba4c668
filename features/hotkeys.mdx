@@ -1,0 +1,417 @@
+---
+title: Hotkeys
+description: Configure and customize VoiceTypr's system-wide hotkeys for voice recording and quick control.
+---
+
+## Overview
+
+VoiceTypr uses system-wide hotkeys to let you start voice recording from anywhere on your system, without switching to the app. Hotkeys work across all applications and can be fully customized to fit your workflow.
+
+## Default Hotkeys
+
+VoiceTypr ships with sensible defaults:
+
+<CardGroup cols={2}>
+  <Card title="macOS" icon="apple">
+    **Cmd + Shift + Space**
+    
+    System-wide recording hotkey that works everywhere.
+  </Card>
+  <Card title="Windows" icon="windows">
+    **Ctrl + Shift + Space**
+    
+    System-wide recording hotkey that works everywhere.
+  </Card>
+</CardGroup>
+
+## Hotkey Configuration
+
+Hotkeys are stored in your app settings:
+
+```typescript
+interface AppSettings {
+  hotkey: string;                    // Main recording hotkey
+  recording_mode?: RecordingMode;    // 'toggle' | 'push_to_talk'
+  use_different_ptt_key?: boolean;   // Use separate push-to-talk key
+  ptt_hotkey?: string;               // Optional separate PTT key
+}
+```
+
+### Hotkey Format
+
+Hotkeys use a standardized format:
+
+```typescript
+// Format: Modifier+Modifier+Key
+"CommandOrControl+Shift+Space"  // Cross-platform Cmd/Ctrl
+"Control+Alt+R"                  // Specific Control key
+"CommandOrControl+Shift+F12"    // Function keys
+```
+
+**Supported modifiers:**
+- `CommandOrControl` - Cmd on macOS, Ctrl on Windows/Linux
+- `Control` - Control key (Ctrl on Windows, ^ on macOS)
+- `Alt` - Alt/Option key
+- `Shift` - Shift key
+
+**Supported keys:**
+- Letters: `A-Z`
+- Numbers: `0-9`
+- Function keys: `F1-F12`
+- Special keys: `Space`, `Return`, `Escape`, `Tab`, `Backspace`, `Delete`
+- Arrow keys: `Up`, `Down`, `Left`, `Right`
+- Punctuation: `Comma`, `Period`, `Slash`, `Backslash`, etc.
+
+## Customizing Your Hotkey
+
+<Steps>
+  <Step title="Open Settings">
+    Click the VoiceTypr menubar icon and go to **Settings**.
+  </Step>
+  
+  <Step title="Find Recording Section">
+    Scroll to the **Recording** section with the microphone icon.
+  </Step>
+  
+  <Step title="Click Edit">
+    Click the edit (pencil) icon next to your current hotkey.
+  </Step>
+  
+  <Step title="Press Your Keys">
+    Press the key combination you want to use. VoiceTypr will capture it in real-time.
+  </Step>
+  
+  <Step title="Save">
+    Click the checkmark (✓) to save your new hotkey.
+  </Step>
+</Steps>
+
+### Hotkey Input Component
+
+The hotkey input component provides real-time feedback:
+
+```tsx
+// src/components/HotkeyInput.tsx:25
+<HotkeyInput
+  value={hotkey}
+  onChange={handleHotkeyChange}
+  validationRules={ValidationPresets.standard()}
+  onEditingChange={(isEditing) => console.log(isEditing)}
+/>
+```
+
+**Features:**
+- Live preview as you press keys
+- Automatic validation against system conflicts
+- ESC to cancel editing
+- Visual feedback for valid/invalid combinations
+
+## Recording Modes
+
+How your hotkey behaves depends on the recording mode:
+
+<Tabs>
+  <Tab title="Toggle Mode">
+    ### Toggle Mode (Default)
+    
+    Press the hotkey once to start, press again to stop.
+    
+    ```typescript
+    recording_mode: 'toggle'
+    ```
+    
+    **Behavior:**
+    1. Press `Cmd+Shift+Space` → Recording starts
+    2. Speak your content
+    3. Press `Cmd+Shift+Space` again → Recording stops
+    
+    **Best for:**
+    - Longer dictations
+    - Hands-free operation
+    - Less strain on fingers
+    
+    <Tip>
+      Toggle mode is recommended for most users. It's more comfortable for extended use.
+    </Tip>
+  </Tab>
+  
+  <Tab title="Push-to-Talk Mode">
+    ### Push-to-Talk Mode
+    
+    Hold the hotkey while speaking, release to stop.
+    
+    ```typescript
+    recording_mode: 'push_to_talk'
+    ```
+    
+    **Behavior:**
+    1. Press and hold `Cmd+Shift+Space` → Recording starts
+    2. Speak while holding the keys
+    3. Release the keys → Recording stops immediately
+    
+    **Best for:**
+    - Quick voice commands
+    - Precise control
+    - Preventing accidental long recordings
+    
+    **Optional: Separate PTT Key**
+    
+    You can configure a different hotkey specifically for push-to-talk:
+    
+    ```typescript
+    use_different_ptt_key: true
+    ptt_hotkey: "Control+Space"  // Different from main hotkey
+    ```
+    
+    This lets you:
+    - Use `Cmd+Shift+Space` for toggle mode
+    - Use `Ctrl+Space` for push-to-talk mode
+    - Switch between modes without changing settings
+  </Tab>
+</Tabs>
+
+## Quick Cancel (Double ESC)
+
+Made a mistake while recording? Quickly cancel without waiting for transcription:
+
+<Note>
+  Press **ESC twice** in quick succession to immediately cancel the current recording.
+</Note>
+
+### How It Works
+
+```rust
+// src-tauri/src/recording/escape_handler.rs:83
+log::info!("Second ESC press detected, cancelling recording");
+```
+
+**Behavior:**
+- First ESC: Tracked as potential cancel
+- Second ESC (within ~1 second): Recording cancelled
+- Recording file is deleted
+- Returns to idle state immediately
+
+**Use cases:**
+- You misspoke and want to start over
+- Background noise interrupted your recording  
+- You changed your mind mid-recording
+
+## Hotkey Validation
+
+VoiceTypr validates hotkeys to prevent conflicts and ensure usability:
+
+### Validation Rules
+
+```typescript
+interface KeyValidationRules {
+  maxKeys: number;              // Maximum keys in combination
+  requireModifier: boolean;     // Must include Cmd/Ctrl/Alt
+  allowedModifiers: string[];   // Which modifiers are allowed
+  disallowedKeys: string[];     // Keys that can't be used
+}
+
+// Standard preset
+ValidationPresets.standard() = {
+  maxKeys: 4,
+  requireModifier: true,
+  allowedModifiers: ['CommandOrControl', 'Control', 'Alt', 'Shift'],
+  disallowedKeys: ['Escape']  // Reserved for cancel
+}
+```
+
+### System Conflict Detection
+
+VoiceTypr checks for conflicts with common system hotkeys:
+
+```typescript
+// src/lib/hotkey-conflicts.ts
+checkForSystemConflict(shortcut: string): SystemConflict | null
+```
+
+**Detected conflicts:**
+- macOS: Spotlight, Mission Control, Screenshots, etc.
+- Windows: Task Manager, Desktop, Windows Search, etc.
+
+**Conflict severity:**
+- `error`: Hotkey will not work (blocked by system)
+- `warning`: May work but could interfere
+
+<Warning>
+  If your hotkey conflicts with a system shortcut, VoiceTypr will warn you during setup. Choose a different combination to avoid issues.
+</Warning>
+
+## Best Practices
+
+### Choosing a Good Hotkey
+
+<AccordionGroup>
+  <Accordion title="Use modifier keys">
+    Always include at least one modifier (Cmd, Ctrl, Alt, Shift) to avoid conflicts with normal typing.
+    
+    ✅ Good: `Cmd+Shift+Space`  
+    ❌ Bad: `Space` (would trigger while typing)
+  </Accordion>
+  
+  <Accordion title="Make it easy to press">
+    Choose keys that are comfortable to press quickly with one hand.
+    
+    ✅ Good: `Cmd+Shift+Space`, `Ctrl+Alt+R`  
+    ❌ Bad: `Cmd+Shift+Ctrl+Alt+F12` (too complex)
+  </Accordion>
+  
+  <Accordion title="Avoid system hotkeys">
+    Don't use combinations already taken by your OS or frequently used apps.
+    
+    ✅ Good: `Cmd+Shift+Space` (rarely used)  
+    ❌ Bad: `Cmd+Space` (Spotlight on macOS)
+  </Accordion>
+  
+  <Accordion title="Consider your workflow">
+    Think about when and how you'll use VoiceTypr.
+    
+    - **Frequent use**: Easy single-hand combo like `Ctrl+Alt+Space`
+    - **Occasional use**: Less convenient combo is fine
+    - **Gaming**: Avoid keys near WASD
+  </Accordion>
+  
+  <Accordion title="Test in different apps">
+    After setting a hotkey, test it in various applications to ensure it works consistently.
+  </Accordion>
+</AccordionGroup>
+
+### Recommended Hotkeys
+
+If the defaults don't work for you, try these:
+
+| Hotkey | Platform | Notes |
+|--------|----------|-------|
+| `Cmd+Shift+Space` | macOS | Default, works well |
+| `Ctrl+Shift+Space` | Windows | Default, works well |
+| `Cmd+Option+Space` | macOS | Alternative if Shift is awkward |
+| `Ctrl+Alt+V` | Windows | "V" for voice |
+| `Cmd+Shift+R` | macOS | "R" for record |
+| `Ctrl+Alt+R` | Windows | "R" for record |
+| `F13` | macOS | If you have extended keyboard |
+| `Ctrl+F12` | Windows | Function key combo |
+
+## Keyboard Mapping
+
+VoiceTypr uses physical key codes for international keyboard support:
+
+```typescript
+// src/lib/keyboard-mapper.ts
+mapCodeToKey(code: string): string
+```
+
+This ensures hotkeys work consistently across:
+- QWERTY, AZERTY, QWERTZ layouts
+- Different languages and regions
+- Custom keyboard mappings
+
+<Info>
+  Hotkeys are based on **physical key position**, not the character printed on the key. This ensures consistency across keyboard layouts.
+</Info>
+
+## Troubleshooting
+
+### Hotkey Not Working
+
+1. **Check permissions**: Ensure VoiceTypr has accessibility permissions (macOS)
+2. **Verify no conflicts**: Check for conflicts with system or app hotkeys
+3. **Test in different apps**: Try the hotkey in multiple applications
+4. **Restart VoiceTypr**: Sometimes registration fails and requires restart
+5. **Check modifiers**: Ensure you're using supported modifiers
+
+### Hotkey Registration Failed
+
+If you see "Hotkey registration failed":
+
+```typescript
+// Event: hotkey-registration-failed
+{
+  suggestion: "The hotkey is in use by another application"
+}
+```
+
+**Solutions:**
+1. Choose a different hotkey combination
+2. Close apps that might be using the same hotkey
+3. Disable conflicting system shortcuts
+4. Restart your computer
+
+### Hotkey Works Intermittently
+
+If the hotkey only works sometimes:
+
+- Some apps capture global hotkeys (games, VMs, remote desktop)
+- Try using a less common key combination
+- Check if the app you're in has special keyboard handling
+
+### Can't Save Hotkey
+
+If the save button stays disabled:
+
+- Your combination may be invalid (check validation error message)
+- You may have exceeded maximum keys (4 keys max)
+- Required modifier may be missing
+- Press ESC to cancel and try a different combination
+
+## Advanced Configuration
+
+### Platform-Specific Hotkeys
+
+While VoiceTypr normalizes hotkeys across platforms, you can use platform-specific configurations:
+
+```typescript
+// macOS
+if (isMacOS) {
+  hotkey = "CommandOrControl+Shift+Space"  // Becomes Cmd+Shift+Space
+}
+
+// Windows
+if (!isMacOS) {
+  hotkey = "CommandOrControl+Shift+Space"  // Becomes Ctrl+Shift+Space
+}
+```
+
+### Multiple Hotkeys
+
+Currently, VoiceTypr supports one main hotkey plus an optional separate push-to-talk key:
+
+```typescript
+hotkey: "CommandOrControl+Shift+Space"  // Main recording hotkey
+ptt_hotkey: "Control+Space"             // Optional PTT-only hotkey
+```
+
+### Programmatic Hotkey Changes
+
+You can update hotkeys programmatically via settings:
+
+```typescript
+import { invoke } from '@tauri-apps/api/core';
+
+await invoke('update_settings', {
+  updates: {
+    hotkey: 'CommandOrControl+Alt+V'
+  }
+});
+```
+
+The backend automatically re-registers the new hotkey.
+
+## Security Considerations
+
+<Warning>
+  System-wide hotkeys can be a security risk if not properly validated. VoiceTypr includes protections against malicious hotkey configurations.
+</Warning>
+
+**Protections:**
+- Hotkeys must include modifiers (can't use single keys)
+- Maximum 4 keys to prevent buffer overflow
+- Validation before registration
+- Automatic cleanup on app quit
+
+**Best practices:**
+- Don't use simple combinations that could trigger accidentally
+- Avoid hotkeys that conflict with security features (Task Manager, etc.)
+- Test thoroughly before relying on them in production workflows

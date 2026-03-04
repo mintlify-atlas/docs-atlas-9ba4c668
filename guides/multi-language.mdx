@@ -1,0 +1,339 @@
+---
+title: Multi-Language Support
+description: Use VoiceTypr with 99+ languages and automatic language detection
+---
+
+VoiceTypr supports transcription in **99+ languages** out of the box using Whisper AI models. No additional downloads or configuration required.
+
+## Supported Languages
+
+Whisper models support a comprehensive list of languages:
+
+<AccordionGroup>
+  <Accordion title="European Languages" icon="earth-europe" defaultOpen>
+    English, Spanish, French, German, Italian, Portuguese, Dutch, Polish, Swedish, Norwegian, Danish, Finnish, Greek, Czech, Romanian, Hungarian, Slovak, Slovenian, Croatian, Serbian, Bulgarian, Ukrainian, Russian, Belarusian, Turkish, and more...
+  </Accordion>
+  
+  <Accordion title="Asian Languages" icon="earth-asia">
+    Chinese (Mandarin & Cantonese), Japanese, Korean, Hindi, Bengali, Tamil, Telugu, Thai, Vietnamese, Indonesian, Malay, Tagalog, Urdu, Punjabi, Gujarati, Kannada, Malayalam, Marathi, Nepali, Sinhala, and more...
+  </Accordion>
+  
+  <Accordion title="Middle Eastern Languages" icon="mosque">
+    Arabic, Hebrew, Persian (Farsi), Turkish, Urdu, Pashto
+  </Accordion>
+  
+  <Accordion title="African Languages" icon="globe">
+    Swahili, Hausa, Yoruba, Amharic, Somali, Shona, Afrikaans, Malagasy
+  </Accordion>
+  
+  <Accordion title="Other Languages" icon="language">
+    Armenian, Azerbaijani, Basque, Breton, Georgian, Icelandic, Kazakh, Latin, Mongolian, Sanskrit, Welsh, Yiddish, and more...
+  </Accordion>
+</AccordionGroup>
+
+<Info>
+  See the complete list of 99+ supported languages in the language selector within VoiceTypr.
+</Info>
+
+## Language Selection
+
+### Setting Your Language
+
+<Steps>
+  <Step title="Open Models Tab">
+    Navigate to the Models section in VoiceTypr
+  </Step>
+  
+  <Step title="Find Language Selector">
+    Located below the header, above the model list
+  </Step>
+  
+  <Step title="Choose Your Language">
+    Click the dropdown and select your spoken language
+    
+    Or search by typing the language name
+  </Step>
+  
+  <Step title="Start Recording">
+    Your language selection applies immediately to new recordings
+  </Step>
+</Steps>
+
+<Tip>
+  You can change language at any time. Each recording uses the language selected at the time of recording.
+</Tip>
+
+## Automatic Language Detection
+
+Whisper can automatically detect the spoken language:
+
+### How It Works
+
+1. Select **"Auto"** from the language dropdown (if available on your model)
+2. Start recording and speak naturally
+3. Whisper analyzes the audio and detects the language
+4. Transcription is returned in the detected language
+
+<Warning>
+  Auto-detection works best for:
+  - Single-language recordings
+  - Common languages with distinct characteristics
+  - Recordings longer than 5-10 seconds
+</Warning>
+
+### When to Use Auto-Detection
+
+<CardGroup cols={2}>
+  <Card title="✅ Good Use Cases" icon="check">
+    - Multilingual environments
+    - Unsure which language you'll speak
+    - Testing different languages
+    - Quick voice notes in various languages
+  </Card>
+  
+  <Card title="❌ Avoid For" icon="xmark">
+    - Professional transcription
+    - Maximum accuracy needed
+    - Mixing multiple languages in one recording
+    - Very short recordings (< 3 seconds)
+  </Card>
+</CardGroup>
+
+### Limitations
+
+- **Code-switching**: Switching languages mid-recording may produce mixed results
+- **Accents**: Strong accents may affect detection accuracy
+- **Background noise**: Can interfere with language detection
+
+<Note>
+  For best results, manually select your language instead of using auto-detection.
+</Note>
+
+## Model-Specific Language Support
+
+### Whisper Models
+
+**All Whisper models** (Tiny, Base, Small, Medium, Large) support **99+ languages**.
+
+**Exception:** English-only models (ending in `.en`)
+- Only support English
+- Faster transcription for English speech
+- Higher accuracy for English
+- Language selector shows only "English"
+
+### Parakeet Models (macOS)
+
+Parakeet models support **25 European languages** only:
+
+<Tabs>
+  <Tab title="Supported Languages">
+    - Bulgarian (bg)
+    - Czech (cs)
+    - Danish (da)
+    - German (de)
+    - Greek (el)
+    - **English (en)**
+    - Spanish (es)
+    - Estonian (et)
+    - Finnish (fi)
+    - French (fr)
+    - Croatian (hr)
+    - Hungarian (hu)
+    - Italian (it)
+    - Lithuanian (lt)
+    - Latvian (lv)
+    - Maltese (mt)
+    - Dutch (nl)
+    - Polish (pl)
+    - Portuguese (pt)
+    - Romanian (ro)
+    - Russian (ru)
+    - Slovak (sk)
+    - Slovenian (sl)
+    - Swedish (sv)
+    - Ukrainian (uk)
+  </Tab>
+  
+  <Tab title="Unsupported Languages">
+    If you need languages outside the 25 European languages, use **Whisper models** instead.
+    
+    Whisper supports:
+    - All Asian languages
+    - Middle Eastern languages
+    - African languages
+    - And 74+ additional languages
+  </Tab>
+</Tabs>
+
+<Info>
+  When using Parakeet models, the language selector only shows the 25 supported European languages.
+</Info>
+
+### Soniox Cloud Models
+
+Soniox supports **48 languages**, including:
+
+- Major European languages
+- English, Spanish, French, German, Italian, Portuguese
+- Asian: Chinese, Japanese, Korean, Hindi, Thai, Vietnamese
+- Middle Eastern: Arabic, Hebrew, Turkish, Persian, Urdu
+- And more...
+
+<Note>
+  Language availability depends on your cloud provider. Check provider documentation for the complete list.
+</Note>
+
+## Translation to English
+
+Whisper can translate non-English speech directly to English:
+
+### How It Works
+
+<Warning>
+  This feature is currently not exposed in the UI but is available in the underlying Whisper model. It may be added in future versions.
+</Warning>
+
+When implemented:
+1. Record in any supported language
+2. Enable "Translate to English" option
+3. Transcription is returned in English
+
+**Example:**
+- Speak: "Bonjour, comment allez-vous?" (French)
+- Receive: "Hello, how are you?" (English)
+
+### Use Cases
+
+- International communication
+- Learning foreign languages
+- Translating voice messages
+- Quick translations without switching apps
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Select Your Language" icon="language" defaultOpen>
+    Always manually select your language for best accuracy:
+    
+    1. Go to Models tab
+    2. Choose your spoken language
+    3. Start recording
+    
+    Don't rely on auto-detection for important transcriptions.
+  </Accordion>
+  
+  <Accordion title="Speak Clearly" icon="microphone">
+    For non-English languages:
+    
+    - Speak at a moderate pace
+    - Reduce background noise
+    - Use standard pronunciation
+    - Avoid heavy dialects when possible
+  </Accordion>
+  
+  <Accordion title="Use Larger Models" icon="brain">
+    Larger models (Medium, Large) have better multilingual performance:
+    
+    - Higher accuracy for non-English languages
+    - Better handling of accents
+    - More robust language detection
+  </Accordion>
+  
+  <Accordion title="Test Your Language" icon="flask">
+    Before important work:
+    
+    1. Test with sample recordings
+    2. Verify accuracy for your accent/dialect
+    3. Adjust speaking style if needed
+    4. Try different models (Small vs Large)
+  </Accordion>
+</AccordionGroup>
+
+## Language-Specific Tips
+
+### Asian Languages (Chinese, Japanese, Korean)
+
+- Use **Small model or larger** for best results
+- Tiny/Base models may struggle with character accuracy
+- Specify exact language (e.g., "Chinese" not "Cantonese") when available
+
+### Tonal Languages (Mandarin, Thai, Vietnamese)
+
+- Speak with clear tonal distinctions
+- Use Medium or Large models
+- Reduce background noise (tones can be subtle)
+
+### Languages with Multiple Scripts
+
+- Arabic: Transcribed in Arabic script
+- Hindi: Transcribed in Devanagari script
+- Chinese: Transcribed in Chinese characters (simplified)
+
+<Info>
+  Whisper outputs text in the native script of the language. No romanization is applied.
+</Info>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Wrong Language Detected" icon="language">
+    **Solution:**
+    - Manually select your language (don't use auto-detect)
+    - Ensure you're speaking consistently in one language
+    - Try a larger model for better detection
+  </Accordion>
+  
+  <Accordion title="Poor Accuracy" icon="spell-check">
+    **Solution:**
+    - Upgrade to a larger model (Small → Medium → Large)
+    - Check microphone quality
+    - Reduce background noise
+    - Speak more clearly and slowly
+  </Accordion>
+  
+  <Accordion title="Language Not Available" icon="ban">
+    **Solution:**
+    - Switch to a Whisper model (supports 99+ languages)
+    - Check if using Parakeet (only 25 European languages)
+    - Verify model is downloaded and selected
+  </Accordion>
+  
+  <Accordion title="Mixed Languages in Output" icon="shuffle">
+    **Solution:**
+    - Record each language separately
+    - Don't code-switch within a single recording
+    - Select the primary language before recording
+  </Accordion>
+</AccordionGroup>
+
+## Switching Between Languages
+
+For users who work in multiple languages:
+
+<Steps>
+  <Step title="Before Recording">
+    Open VoiceTypr settings
+    
+    Check current language selection
+  </Step>
+  
+  <Step title="Change Language">
+    Go to Models tab
+    
+    Select the language you'll speak
+  </Step>
+  
+  <Step title="Record">
+    Use your hotkey and speak in the selected language
+  </Step>
+  
+  <Step title="Verify">
+    Check transcription accuracy
+    
+    Adjust if needed for next time
+  </Step>
+</Steps>
+
+<Tip>
+  Create a workflow: Check language before important recordings. It takes 2 seconds but ensures accuracy.
+</Tip>

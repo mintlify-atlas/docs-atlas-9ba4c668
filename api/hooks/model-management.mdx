@@ -1,0 +1,599 @@
+---
+title: useModelManagement Hook
+description: React hook for managing speech recognition models (download, delete, verify)
+icon: boxes-stacked
+---
+
+The `useModelManagement` hook provides a complete interface for managing Whisper, Parakeet, and Soniox speech recognition models.
+
+## Import
+
+```typescript
+import { useModelManagement } from '@/hooks/useModelManagement';
+```
+
+## Usage
+
+```typescript
+function ModelManager() {
+  const {
+    models,
+    modelOrder,
+    downloadProgress,
+    verifyingModels,
+    isLoading,
+    loadModels,
+    downloadModel,
+    cancelDownload,
+    deleteModel
+  } = useModelManagement({ showToasts: true });
+
+  return (
+    <div>
+      {isLoading ? (
+        <LoadingSpinner />
+      ) : (
+        <ul>
+          {modelOrder.map(name => {
+            const model = models[name];
+            const progress = downloadProgress[name];
+            const isVerifying = verifyingModels.has(name);
+
+            return (
+              <li key={name}>
+                <h3>{model.display_name}</h3>
+                
+                {progress !== undefined && (
+                  <progress value={progress} max={100} />
+                )}
+                
+                {isVerifying && <span>Verifying...</span>}
+                
+                {!model.downloaded && !progress && (
+                  <button onClick={() => downloadModel(name)}>
+                    Download
+                  </button>
+                )}
+                
+                {progress !== undefined && (
+                  <button onClick={() => cancelDownload(name)}>
+                    Cancel
+                  </button>
+                )}
+                
+                {model.downloaded && (
+                  <button onClick={() => deleteModel(name)}>
+                    Delete
+                  </button>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
+```
+
+## Options
+
+```typescript
+interface UseModelManagementOptions {
+  windowId?: 'main' | 'pill' | 'onboarding';  // Event coordination
+  showToasts?: boolean;                        // Show success/error toasts
+}
+```
+
+<ParamField path="windowId" type="string" default="main">
+  Window ID for event coordination (ensures events are only processed once)
+</ParamField>
+
+<ParamField path="showToasts" type="boolean" default="true">
+  Display toast notifications for downloads, errors, etc.
+</ParamField>
+
+**Example:**
+
+```typescript
+// Disable toasts for background operations
+const { downloadModel } = useModelManagement({ showToasts: false });
+```
+
+---
+
+## Return Values
+
+### models
+
+**Type:** `Record<string, ModelInfo>`
+
+Object mapping model names to their information.
+
+**ModelInfo Interface:**
+
+```typescript
+interface ModelInfo {
+  name: string;              // e.g., "base.en"
+  display_name: string;      // e.g., "Whisper Base English"
+  size: number;              // Bytes (0 for cloud models)
+  url: string;               // Download URL
+  sha256: string;            // Checksum
+  downloaded: boolean;       // Available locally
+  speed_score: number;       // 1-10 (higher = faster)
+  accuracy_score: number;    // 1-10 (higher = more accurate)
+  recommended: boolean;      // Official recommendation
+  engine: 'whisper' | 'parakeet' | 'soniox';
+  kind: 'local' | 'cloud';
+  requires_setup: boolean;   // API key needed
+}
+```
+
+**Usage:**
+
+```typescript
+const { models } = useModelManagement();
+
+const baseModel = models['base.en'];
+if (baseModel?.downloaded) {
+  console.log('Base model is ready');
+}
+```
+
+---
+
+### modelOrder
+
+**Type:** `string[]`
+
+Array of model names sorted by accuracy score (highest to lowest).
+
+**Usage:**
+
+```typescript
+const { models, modelOrder } = useModelManagement();
+
+// Render models in optimal order
+modelOrder.map(name => (
+  <ModelCard key={name} model={models[name]} />
+));
+```
+
+---
+
+### downloadProgress
+
+**Type:** `Record<string, number>`
+
+Object mapping model names to download progress (0-100).
+
+**Usage:**
+
+```typescript
+const { downloadProgress } = useModelManagement();
+
+const progress = downloadProgress['large-v3'];
+if (progress !== undefined) {
+  console.log(`Download: ${progress.toFixed(1)}%`);
+}
+```
+
+---
+
+### verifyingModels
+
+**Type:** `Set<string>`
+
+Set of model names currently being verified after download.
+
+**Usage:**
+
+```typescript
+const { verifyingModels } = useModelManagement();
+
+if (verifyingModels.has('base.en')) {
+  console.log('Verifying base.en...');
+}
+```
+
+---
+
+### isLoading
+
+**Type:** `boolean`
+
+Whether the initial model list is loading.
+
+**Usage:**
+
+```typescript
+const { isLoading, models } = useModelManagement();
+
+if (isLoading) {
+  return <LoadingSpinner />;
+}
+
+return <ModelList models={models} />;
+```
+
+---
+
+## Actions
+
+### loadModels
+
+**Type:** `() => Promise<ModelInfo[]>`
+
+Refresh the model list from the backend.
+
+**Usage:**
+
+```typescript
+const { loadModels } = useModelManagement();
+
+// Refresh after external changes
+const handleRefresh = async () => {
+  const freshModels = await loadModels();
+  console.log(`Loaded ${freshModels.length} models`);
+};
+```
+
+---
+
+### downloadModel
+
+**Type:** `(modelName: string) => Promise<void>`
+
+Start downloading a model.
+
+**Parameters:**
+
+<ParamField path="modelName" type="string" required>
+  Model to download (e.g., `"base.en"`, `"parakeet-1.0"`)
+</ParamField>
+
+**Usage:**
+
+```typescript
+const { downloadModel } = useModelManagement();
+
+const handleDownload = async () => {
+  try {
+    await downloadModel('base.en');
+    // Download started, progress updates via events
+  } catch (error) {
+    console.error('Failed to start download:', error);
+  }
+};
+```
+
+**Behavior:**
+
+1. Checks if model is already downloading (prevents duplicates)
+2. Sets initial progress to 0
+3. Invokes `download_model` command (non-blocking)
+4. Progress updates come via `download-progress` events
+5. Completion triggers `model-downloaded` event and reloads model list
+
+**Cloud Models:**
+
+Attempting to download a cloud model (e.g., Soniox) shows an info toast.
+
+---
+
+### cancelDownload
+
+**Type:** `(modelName: string) => Promise<void>`
+
+Cancel an in-progress download.
+
+**Parameters:**
+
+<ParamField path="modelName" type="string" required>
+  Model to cancel
+</ParamField>
+
+**Usage:**
+
+```typescript
+const { cancelDownload, downloadProgress } = useModelManagement();
+
+if (downloadProgress['large-v3']) {
+  await cancelDownload('large-v3');
+}
+```
+
+---
+
+### deleteModel
+
+**Type:** `(modelName: string) => Promise<void>`
+
+Delete a downloaded model with confirmation dialog.
+
+**Parameters:**
+
+<ParamField path="modelName" type="string" required>
+  Model to delete
+</ParamField>
+
+**Usage:**
+
+```typescript
+const { deleteModel } = useModelManagement();
+
+const handleDelete = async () => {
+  // Shows native confirmation dialog
+  await deleteModel('base.en');
+  // If confirmed, model is deleted and list refreshed
+};
+```
+
+**Behavior:**
+
+1. Shows confirmation dialog ("Are you sure...?")
+2. If confirmed, invokes `delete_model` command
+3. Refreshes model list on success
+
+**Cloud Models:**
+
+Attempting to delete a cloud model shows an info toast.
+
+---
+
+## Utilities
+
+### sortedModels
+
+**Type:** `[string, ModelInfo][]`
+
+Array of `[modelName, modelInfo]` tuples sorted by accuracy.
+
+**Usage:**
+
+```typescript
+const { sortedModels } = useModelManagement();
+
+sortedModels.forEach(([name, info]) => {
+  console.log(`${name}: ${info.accuracy_score}/10 accuracy`);
+});
+```
+
+---
+
+### sortModels (exported function)
+
+**Type:** `(models: [string, ModelInfo][], sortBy: SortCriteria) => [string, ModelInfo][]`
+
+```typescript
+type SortCriteria = 'balanced' | 'speed' | 'accuracy' | 'size';
+```
+
+Sort models by different criteria.
+
+**Usage:**
+
+```typescript
+import { useModelManagement, sortModels } from '@/hooks/useModelManagement';
+
+const { models } = useModelManagement();
+const entries = Object.entries(models);
+
+// Sort by speed
+const fastestFirst = sortModels(entries, 'speed');
+
+// Sort by size (smallest first)
+const smallestFirst = sortModels(entries, 'size');
+
+// Sort by balanced score (40% speed + 60% accuracy)
+const balancedSort = sortModels(entries, 'balanced');
+```
+
+---
+
+## Events Handled
+
+The hook automatically subscribes to these backend events:
+
+### download-progress
+
+**Payload:**
+
+```typescript
+{
+  model: string;
+  engine: string;
+  downloaded: number;  // Bytes downloaded
+  total: number;       // Total bytes
+  progress: number;    // Percentage (0-100)
+}
+```
+
+**Behavior:** Updates `downloadProgress[model]` with latest percentage.
+
+---
+
+### model-verifying
+
+**Payload:**
+
+```typescript
+{
+  model: string;
+  engine: string;
+}
+```
+
+**Behavior:**
+
+1. Sets progress to 100%
+2. Adds model to `verifyingModels` set
+3. Removes from `downloadProgress` after 500ms
+
+---
+
+### model-downloaded
+
+**Payload:**
+
+```typescript
+{
+  model: string;
+  engine: string;
+}
+```
+
+**Behavior:**
+
+1. Removes from `downloadProgress` and `verifyingModels`
+2. Refreshes model list
+3. Shows success toast (if enabled)
+
+---
+
+### download-cancelled
+
+**Payload:**
+
+```typescript
+{
+  model: string;
+  engine: string;
+}
+```
+
+**Behavior:**
+
+1. Removes from `downloadProgress`
+2. Shows info toast (if enabled)
+
+---
+
+## Component Examples
+
+### Model Download Card
+
+```typescript
+import { useModelManagement } from '@/hooks/useModelManagement';
+import { isLocalModel } from '@/types';
+
+function ModelCard({ modelName }: { modelName: string }) {
+  const { models, downloadProgress, verifyingModels, downloadModel, deleteModel } = useModelManagement();
+  
+  const model = models[modelName];
+  const progress = downloadProgress[modelName];
+  const isVerifying = verifyingModels.has(modelName);
+
+  if (!model) return null;
+
+  return (
+    <div className="model-card">
+      <h3>{model.display_name}</h3>
+      <p>{model.engine.toUpperCase()}</p>
+
+      {isLocalModel(model) && (
+        <p className="size">
+          {(model.size / 1024 / 1024).toFixed(0)} MB
+        </p>
+      )}
+
+      <div className="badges">
+        <span>Speed: {model.speed_score}/10</span>
+        <span>Accuracy: {model.accuracy_score}/10</span>
+        {model.recommended && <span className="recommended">Recommended</span>}
+      </div>
+
+      {progress !== undefined && (
+        <div className="progress">
+          <progress value={progress} max={100} />
+          <span>{progress.toFixed(1)}%</span>
+        </div>
+      )}
+
+      {isVerifying && (
+        <div className="verifying">Verifying download...</div>
+      )}
+
+      {!model.downloaded && progress === undefined && (
+        <button onClick={() => downloadModel(modelName)}>
+          Download
+        </button>
+      )}
+
+      {model.downloaded && (
+        <button onClick={() => deleteModel(modelName)} variant="destructive">
+          Delete
+        </button>
+      )}
+    </div>
+  );
+}
+```
+
+---
+
+### Filtered Model List
+
+```typescript
+import { useModelManagement } from '@/hooks/useModelManagement';
+
+function WhisperModelsOnly() {
+  const { models, modelOrder } = useModelManagement();
+
+  const whisperModels = modelOrder.filter(name => 
+    models[name].engine === 'whisper'
+  );
+
+  return (
+    <div>
+      <h2>Whisper Models ({whisperModels.length})</h2>
+      {whisperModels.map(name => (
+        <ModelCard key={name} modelName={name} />
+      ))}
+    </div>
+  );
+}
+```
+
+---
+
+## TypeScript Types
+
+```typescript
+import type { ModelInfo } from '@/types';
+
+interface UseModelManagementOptions {
+  windowId?: 'main' | 'pill' | 'onboarding';
+  showToasts?: boolean;
+}
+
+interface UseModelManagementReturn {
+  // State
+  models: Record<string, ModelInfo>;
+  modelOrder: string[];
+  downloadProgress: Record<string, number>;
+  verifyingModels: Set<string>;
+  isLoading: boolean;
+
+  // Actions
+  loadModels: () => Promise<ModelInfo[]>;
+  downloadModel: (modelName: string) => Promise<void>;
+  cancelDownload: (modelName: string) => Promise<void>;
+  deleteModel: (modelName: string) => Promise<void>;
+
+  // Utils
+  sortedModels: [string, ModelInfo][];
+}
+
+function useModelManagement(
+  options?: UseModelManagementOptions
+): UseModelManagementReturn;
+```
+
+---
+
+## See Also
+
+- [Model Commands](/api/commands/model) - Backend model operations
+- [Settings Commands](/api/commands/settings) - Model selection
+- [Audio Commands](/api/commands/audio) - Using models for transcription

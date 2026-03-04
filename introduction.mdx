@@ -1,0 +1,258 @@
+---
+title: "Introduction"
+description: "Open source AI-powered offline voice-to-text dictation for macOS and Windows"
+---
+
+<img
+  className="block dark:hidden"
+  src="/images/hero-light.svg"
+  alt="VoiceTypr Hero Light"
+/>
+<img
+  className="hidden dark:block"
+  src="/images/hero-dark.svg"
+  alt="VoiceTypr Hero Dark"
+/>
+
+## What is VoiceTypr?
+
+VoiceTypr is an **open source AI-powered voice-to-text dictation tool** that runs completely offline on your device. It's a privacy-first alternative to Wispr Flow and SuperWhisper, designed for developers, writers, and anyone who wants to type faster without sacrificing privacy.
+
+Press a hotkey anywhere on your system, speak your thoughts, and watch them appear instantly at your cursor—no cloud, no tracking, no subscriptions.
+
+<CardGroup cols={2}>
+  <Card
+    title="Quick Installation"
+    icon="download"
+    href="/installation"
+  >
+    Get VoiceTypr running on macOS or Windows in minutes
+  </Card>
+  <Card
+    title="Quickstart Guide"
+    icon="rocket"
+    href="/quickstart"
+  >
+    Complete your first transcription in under 5 minutes
+  </Card>
+  <Card
+    title="Voice Transcription"
+    icon="microphone"
+    href="/features/voice-transcription"
+  >
+    Learn how system-wide voice dictation works
+  </Card>
+  <Card
+    title="AI Models"
+    icon="brain"
+    href="/features/ai-models"
+  >
+    Understand model sizes and choose the right one
+  </Card>
+</CardGroup>
+
+## Key Features
+
+### Instant Voice-to-Text
+
+Transcribe your voice in real-time with a simple system-wide hotkey. Text appears automatically at your cursor position—works in Cursor, VS Code, Slack, ChatGPT, and every other application.
+
+<CodeGroup>
+```bash macOS Default Hotkey
+Cmd + Shift + Space (hold to record)
+```
+
+```bash Windows Default Hotkey
+Ctrl + Shift + Space (hold to record)
+```
+</CodeGroup>
+
+<Info>
+  **Pro tip**: Release the hotkey to stop recording and start transcription. Double-tap ESC while recording to cancel.
+</Info>
+
+### 100% Offline & Private
+
+All transcription happens locally on your device using OpenAI's Whisper AI models. Your voice never leaves your computer—no cloud processing, no data collection, no tracking (except for license verification).
+
+- **Zero cloud dependency** for transcription
+- **Complete data ownership** of your recordings
+- **Open source transparency** with AGPL-3.0 license
+- **Local model storage** in your home directory
+
+### Powered by Local AI
+
+VoiceTypr uses state-of-the-art Whisper AI models that run entirely on your device:
+
+- **Multiple model sizes**: Tiny (39MB) to Large (1.5GB)
+- **99+ languages supported** out of the box
+- **Automatic language detection**
+- **Hardware acceleration** (Metal on macOS, GPU on Windows)
+- **Speed vs accuracy tradeoffs** based on your needs
+
+<Note>
+  The **base** model offers the best balance of speed and accuracy for most users. Start there and adjust based on your needs.
+</Note>
+
+### AI Enhancement (Optional)
+
+Transform raw transcriptions with AI-powered post-processing:
+
+- **Smart presets**: Convert voice to prompts, emails, commit messages, or formatted notes
+- **Cloud AI integration**: Groq (fast & free) or Gemini
+- **Secure API storage**: Keys stored in system keychain
+- **Internet required**: Enhancement only (transcription stays offline)
+
+<Warning>
+  AI Enhancement requires an internet connection and API key (Groq or Gemini). This is optional—transcription works perfectly without it.
+</Warning>
+
+### Native Performance
+
+Built with Rust (Tauri v2) backend and React 19 frontend for maximum efficiency:
+
+- **Blazing-fast transcription** with hardware acceleration
+- **Minimal resource usage** during idle and recording
+- **Small app footprint** (~50MB installed, excluding models)
+- **Platform-native** integration and feel
+
+## Supported Platforms
+
+<Tabs>
+  <Tab title="macOS">
+    **Requirements**
+    - macOS 13.0 (Ventura) or later
+    - 3-4 GB free disk space (for AI models)
+    - Intel or Apple Silicon processor
+    - Microphone access permission
+    - Accessibility access permission (for auto text insertion)
+
+    **Hardware Acceleration**
+    - Automatic Metal GPU acceleration
+    - Apple Neural Engine support (with Parakeet models)
+    - Optimized for M1/M2/M3 chips
+
+    **App Security**
+    - Fully signed and notarized by Apple
+    - No security warnings on installation
+    - Distributed as .dmg for easy installation
+  </Tab>
+  <Tab title="Windows">
+    **Requirements**
+    - Windows 10/11 (64-bit)
+    - 3-4 GB free disk space (for AI models)
+    - Modern x64 processor
+    - Microphone access permission
+
+    **GPU Acceleration**
+    - **5-10x faster** with compatible GPUs
+    - NVIDIA, AMD, and Intel GPU support
+    - Automatic fallback to CPU if unavailable
+    - Update graphics drivers for best performance:
+      - [NVIDIA Drivers](https://www.nvidia.com/drivers)
+      - [AMD Drivers](https://www.amd.com/support)
+      - [Intel Drivers](https://www.intel.com/content/www/us/en/support/products/80939/graphics.html)
+
+    **Installation**
+    - NSIS installer for smooth setup
+    - Auto-installs WebView2 if needed
+  </Tab>
+</Tabs>
+
+## Use Cases
+
+VoiceTypr excels in scenarios where typing is slow, inefficient, or impossible:
+
+<CardGroup cols={2}>
+  <Card title="Coding" icon="code">
+    Dictate comments, documentation, commit messages, and code explanations faster than typing
+  </Card>
+  <Card title="Writing" icon="pen-fancy">
+    Draft articles, blog posts, and documentation by speaking your thoughts naturally
+  </Card>
+  <Card title="Communication" icon="message">
+    Compose Slack messages, emails, and chat responses at the speed of thought
+  </Card>
+  <Card title="Note-taking" icon="note-sticky">
+    Capture meeting notes, ideas, and thoughts without breaking your flow
+  </Card>
+</CardGroup>
+
+## Why VoiceTypr?
+
+### Privacy First
+
+Unlike cloud-based alternatives, VoiceTypr keeps your voice data on your device. Perfect for sensitive work environments, confidential communications, or anyone who values privacy.
+
+### Open Source
+
+Fully transparent [AGPL-3.0 licensed](https://github.com/moinulmoin/voicetypr) codebase. Audit the code, contribute features, or fork it for your needs.
+
+### Pay Once, Use Forever
+
+No subscriptions, no monthly fees. One-time purchase with lifetime updates. Trial version available to test before buying.
+
+### Offline Operation
+
+Works perfectly without internet (except for optional AI Enhancement). Ideal for flights, remote locations, or offline-first workflows.
+
+## Getting Started
+
+Ready to experience voice dictation? Follow our quickstart guide:
+
+<Steps>
+  <Step title="Download VoiceTypr">
+    Get the latest release for [macOS or Windows](https://github.com/moinulmoin/voicetypr/releases/latest)
+  </Step>
+  <Step title="Install and Launch">
+    Run the installer and grant required permissions
+  </Step>
+  <Step title="Download AI Model">
+    Choose and download your preferred Whisper model (recommended: base)
+  </Step>
+  <Step title="Start Transcribing">
+    Press your hotkey, speak, and watch the magic happen
+  </Step>
+</Steps>
+
+<Card
+  title="Continue to Installation"
+  icon="arrow-right"
+  href="/installation"
+  horizontal
+>
+  Follow the complete installation guide for your platform
+</Card>
+
+## Community and Support
+
+<CardGroup cols={2}>
+  <Card
+    title="GitHub Repository"
+    icon="github"
+    href="https://github.com/moinulmoin/voicetypr"
+  >
+    View source code, report issues, and contribute
+  </Card>
+  <Card
+    title="Troubleshooting"
+    icon="life-ring"
+    href="/troubleshooting"
+  >
+    Common issues and solutions
+  </Card>
+  <Card
+    title="FAQ"
+    icon="question"
+    href="/faq"
+  >
+    Frequently asked questions
+  </Card>
+  <Card
+    title="Development Docs"
+    icon="code"
+    href="/development/setup"
+  >
+    Build VoiceTypr from source
+  </Card>
+</CardGroup>

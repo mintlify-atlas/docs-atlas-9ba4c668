@@ -1,0 +1,254 @@
+---
+title: Voice Transcription
+description: Learn how VoiceTypr's voice transcription works, including recording modes, automatic text insertion, and offline operation.
+---
+
+## Overview
+
+VoiceTypr provides instant voice-to-text transcription that works system-wide across all your applications. Your voice recordings are transcribed locally on your device using state-of-the-art AI models, with automatic insertion at your cursor position.
+
+## How It Works
+
+<Steps>
+  <Step title="Press Your Hotkey">
+    Activate recording using your configured system-wide hotkey (default: `Cmd+Shift+Space` on macOS, `Ctrl+Shift+Space` on Windows).
+  </Step>
+  
+  <Step title="Speak Naturally">
+    VoiceTypr captures your voice using your selected microphone. Speak naturally - the AI handles grammar, punctuation, and formatting.
+  </Step>
+  
+  <Step title="Stop Recording">
+    Release or press your hotkey again (depending on your recording mode) to stop.
+  </Step>
+  
+  <Step title="Automatic Transcription">
+    The audio is transcribed locally on your device using your selected AI model. No cloud processing required.
+  </Step>
+  
+  <Step title="Text Insertion">
+    Transcribed text is automatically inserted at your cursor position in any application.
+  </Step>
+</Steps>
+
+## Recording Modes
+
+VoiceTypr supports two recording modes to fit your workflow:
+
+<Tabs>
+  <Tab title="Toggle Mode">
+    **Toggle mode** (default) lets you press the hotkey once to start recording and press it again to stop.
+    
+    ```typescript
+    recording_mode: 'toggle'
+    ```
+    
+    **Best for:**
+    - Longer dictations
+    - Hands-free operation after starting
+    - Less physically demanding
+    
+    **Usage:**
+    1. Press hotkey → Recording starts
+    2. Speak your content
+    3. Press hotkey again → Recording stops
+  </Tab>
+  
+  <Tab title="Push-to-Talk Mode">
+    **Push-to-Talk mode** requires you to hold the hotkey while speaking.
+    
+    ```typescript
+    recording_mode: 'push_to_talk'
+    ```
+    
+    **Best for:**
+    - Quick voice commands
+    - Precise control over recording duration
+    - Preventing accidental recordings
+    
+    **Usage:**
+    1. Press and hold hotkey → Recording starts
+    2. Speak while holding
+    3. Release hotkey → Recording stops immediately
+    
+    <Note>
+      You can optionally configure a separate push-to-talk key different from your main recording hotkey using the `use_different_ptt_key` setting.
+    </Note>
+  </Tab>
+</Tabs>
+
+## Automatic Text Insertion
+
+Once transcription completes, VoiceTypr automatically inserts the text at your current cursor position.
+
+### How Text Insertion Works
+
+- **Clipboard Preservation**: Your original clipboard content is saved and restored after insertion (500ms delay)
+- **Universal Compatibility**: Works in any application that accepts text input
+- **Cursor Position**: Text appears exactly where your cursor is located
+
+<Warning>
+  On macOS, automatic text insertion requires **Accessibility Permission**. VoiceTypr will prompt you to grant this permission during onboarding.
+</Warning>
+
+### Clipboard Fallback
+
+If you prefer manual control, you can enable the `keep_transcription_in_clipboard` setting to keep the transcription in your clipboard instead of automatic insertion:
+
+```typescript
+keep_transcription_in_clipboard: true
+```
+
+With this enabled, you can paste the transcription wherever you want using `Cmd+V` (macOS) or `Ctrl+V` (Windows).
+
+## Transcription History
+
+VoiceTypr automatically saves all your transcriptions for easy access and reuse.
+
+### Viewing History
+
+<Steps>
+  <Step title="Open VoiceTypr">
+    Click the menubar icon to open the main window.
+  </Step>
+  
+  <Step title="Navigate to Recordings">
+    Go to the **Recordings** tab to see your transcription history.
+  </Step>
+  
+  <Step title="Browse and Copy">
+    View up to 50 recent transcriptions. Click any transcription to copy it to your clipboard.
+  </Step>
+</Steps>
+
+### Managing History
+
+Transcription history includes:
+
+```typescript
+interface TranscriptionHistory {
+  id: string;           // Unique identifier
+  text: string;         // Transcribed text
+  timestamp: Date;      // When it was created
+  model: string;        // Which model was used
+}
+```
+
+<Accordion title="Automatic Cleanup">
+  Configure automatic cleanup of old transcriptions using the `transcription_cleanup_days` setting:
+  
+  - Set to `null` or `undefined` to keep transcriptions indefinitely
+  - Set to a number (e.g., `30`) to auto-delete transcriptions older than that many days
+  
+  ```typescript
+  transcription_cleanup_days: 30  // Delete transcriptions older than 30 days
+  ```
+</Accordion>
+
+## Privacy and Offline Operation
+
+VoiceTypr is designed with privacy as a core principle.
+
+### 100% Offline Transcription
+
+<Info>
+  All voice transcription happens **locally on your device**. Your voice recordings never leave your computer.
+</Info>
+
+**What stays offline:**
+- Voice recording capture
+- Audio processing and transcription
+- All AI model inference
+- Transcription history storage
+
+**What requires internet:**
+- Initial model downloads
+- AI enhancement features (optional)
+- License validation
+- App updates
+
+### Data Storage
+
+- **Recordings**: Temporary audio files are deleted after transcription
+- **Transcriptions**: Stored locally in your app data directory
+- **Models**: Downloaded once and cached on your device
+- **No Telemetry**: VoiceTypr does not send usage data or analytics
+
+## Advanced Features
+
+### Silence Detection
+
+VoiceTypr includes automatic silence detection to stop recording when you pause speaking:
+
+- Uses Voice Activity Detection (VAD) to monitor audio levels
+- Configurable silence threshold and duration
+- Helps prevent unnecessarily long recordings
+
+### Quick Cancel
+
+Made a mistake? Double-tap **ESC** to quickly cancel the current recording:
+
+<Tip>
+  Press ESC twice quickly to cancel a recording without saving it. This is faster than waiting for transcription to complete.
+</Tip>
+
+### Audio Feedback
+
+Configure audio feedback for recording events:
+
+```typescript
+play_sound_on_recording: true       // Play sound when recording starts
+play_sound_on_recording_end: true   // Play sound when recording stops
+```
+
+### Visual Indicator
+
+The pill indicator shows recording status on your screen:
+
+```typescript
+pill_indicator_mode: 'when_recording'  // Options: 'never' | 'always' | 'when_recording'
+pill_indicator_position: 'top-center'  // Screen position
+pill_indicator_offset: 20              // Distance from edge (10-100px)
+```
+
+## Supported Languages
+
+VoiceTypr supports 99+ languages out of the box. Select your language in **Settings**:
+
+```typescript
+language: 'en'  // ISO 639-1 language code
+```
+
+<Note>
+  Some models (like `*.en` Whisper variants and Parakeet `-v2` models) only support English. VoiceTypr will automatically enforce English when these models are selected.
+</Note>
+
+## Troubleshooting
+
+### No Speech Detected
+
+If you see "No speech detected" errors:
+
+1. Check your microphone is selected correctly in Settings
+2. Verify microphone permissions are granted
+3. Test your microphone in another app
+4. Adjust your recording environment to reduce background noise
+
+### Text Not Inserting
+
+**On macOS:**
+- Ensure Accessibility permission is granted
+- Check System Settings → Privacy & Security → Accessibility
+- VoiceTypr should be listed and enabled
+
+**On Windows:**
+- No special permissions required
+- Try the clipboard fallback mode if insertion fails
+
+### Poor Transcription Quality
+
+- Use a better quality microphone
+- Reduce background noise
+- Speak clearly and at a moderate pace
+- Try a larger model for better accuracy (see [AI Models](/features/ai-models))
+- Use AI Enhancement to clean up transcriptions (see [AI Enhancement](/features/ai-enhancement))

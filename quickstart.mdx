@@ -1,80 +1,576 @@
 ---
 title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+description: "Get from installation to your first transcription in under 5 minutes"
 ---
 
-## Get started in three steps
+## Overview
 
-Get your documentation site running locally and make your first customization.
-
-### Step 1: Set up your local environment
-
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
-
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
-
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 3: Go live
-
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
-
-## Next steps
-
-Now that you have your docs running, explore these key features:
-
-<CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
-</CardGroup>
+This guide will walk you through launching VoiceTypr, granting permissions, downloading your first AI model, and completing your first voice transcription. By the end, you'll be ready to dictate text anywhere on your system.
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+  **Already installed?** If you haven't installed VoiceTypr yet, start with the [Installation Guide](/installation).
 </Note>
+
+## Your First Transcription
+
+<Steps>
+  <Step title="Launch VoiceTypr">
+    Open VoiceTypr from your Applications folder (macOS) or Start Menu (Windows).
+    
+    - **macOS**: The VoiceTypr icon appears in your menu bar (top-right)
+    - **Windows**: The VoiceTypr icon appears in your system tray (bottom-right)
+    
+    Click the icon to open the main window.
+  </Step>
+
+  <Step title="Grant Microphone Permission">
+    VoiceTypr needs microphone access to record your voice.
+    
+    <Tabs>
+      <Tab title="macOS">
+        When prompted, click **OK** to grant microphone access.
+        
+        **If you missed the prompt:**
+        1. Open **System Settings** > **Privacy & Security** > **Microphone**
+        2. Find **Voicetypr** in the list
+        3. Enable the toggle
+        4. Restart VoiceTypr
+        
+        <Warning>
+          Without microphone permission, VoiceTypr cannot record. This permission is required.
+        </Warning>
+      </Tab>
+      
+      <Tab title="Windows">
+        When prompted, click **Yes** or **Allow**.
+        
+        **If you missed the prompt:**
+        1. Open **Settings** > **Privacy** > **Microphone**
+        2. Enable **Allow apps to access your microphone**
+        3. Ensure **Voicetypr** is enabled in the app list
+        4. Restart VoiceTypr
+        
+        <Warning>
+          Without microphone permission, VoiceTypr cannot record. This permission is required.
+        </Warning>
+      </Tab>
+    </Tabs>
+  </Step>
+
+  <Step title="Grant Accessibility Permission (macOS only)">
+    On macOS, VoiceTypr needs accessibility access to automatically insert text at your cursor.
+    
+    <Tabs>
+      <Tab title="macOS">
+        1. Open **System Settings** > **Privacy & Security** > **Accessibility**
+        2. Click the lock icon and enter your password
+        3. Click the **+** button
+        4. Navigate to **Applications** and select **Voicetypr**
+        5. Enable the toggle for **Voicetypr**
+        
+        <Info>
+          **Why this permission?** Accessibility access allows VoiceTypr to automatically paste transcribed text at your cursor position in any app. Without it, transcriptions will be copied to your clipboard instead (you'll need to paste manually with Cmd+V).
+        </Info>
+      </Tab>
+      
+      <Tab title="Windows">
+        No additional permissions required on Windows. Text insertion works automatically.
+      </Tab>
+    </Tabs>
+  </Step>
+
+  <Step title="Download Your First Model">
+    VoiceTypr uses local AI models for offline transcription. Let's download one.
+    
+    1. In the VoiceTypr window, navigate to the **Models** tab
+    2. Browse the **Available to Set Up** section
+    3. Find the **base** model (recommended for most users)
+    4. Click **Download**
+    5. Wait for the download and verification to complete (~1 minute)
+    
+    <Accordion title="Model Selection Guide">
+      | Model | Size | Speed | Accuracy | Best For |
+      |-------|------|-------|----------|----------|
+      | **tiny** | 39MB | Fast | Basic | Testing, quick notes |
+      | **base** | 74MB | Fast | Good | **Most users (recommended)** |
+      | **small** | 244MB | Medium | Better | Balanced performance |
+      | **medium** | 769MB | Slow | High | Important content |
+      | **large** | 1.5GB | Very Slow | Excellent | Professional use |
+      
+      Start with **base** and upgrade later if you need better accuracy.
+    </Accordion>
+    
+    Once downloaded, the model will move to **Available to Use** and be automatically selected.
+  </Step>
+
+  <Step title="Verify Readiness">
+    Check the **Overview** tab to ensure everything is ready:
+    
+    - **Green "Ready" status** - You're all set!
+    - **Hotkey displayed** - Default is `Cmd+Shift+Space` (macOS) or `Ctrl+Shift+Space` (Windows)
+    - **Model selected** - Your downloaded model appears
+    
+    <Info>
+      If you see warning indicators, hover over them to see what's missing (likely a permission or model).
+    </Info>
+  </Step>
+
+  <Step title="Make Your First Recording">
+    Time to test it out! Open any text editor or application.
+    
+    <Tabs>
+      <Tab title="macOS">
+        1. Click into a text field (Notes, Slack, VS Code, etc.)
+        2. Press and hold **Cmd + Shift + Space**
+        3. Speak clearly: "This is my first VoiceTypr transcription."
+        4. Release the keys to stop recording
+        5. Wait a few seconds for transcription
+        6. Your text appears at the cursor!
+        
+        <Tip>
+          The recording indicator (pill) appears on your screen while recording. Double-tap ESC to cancel if you make a mistake.
+        </Tip>
+      </Tab>
+      
+      <Tab title="Windows">
+        1. Click into a text field (Notepad, Slack, VS Code, etc.)
+        2. Press and hold **Ctrl + Shift + Space**
+        3. Speak clearly: "This is my first VoiceTypr transcription."
+        4. Release the keys to stop recording
+        5. Wait a few seconds for transcription
+        6. Your text appears at the cursor!
+        
+        <Tip>
+          The recording indicator (pill) appears on your screen while recording. Double-tap ESC to cancel if you make a mistake.
+        </Tip>
+      </Tab>
+    </Tabs>
+    
+    **Congratulations!** You've completed your first transcription.
+  </Step>
+</Steps>
+
+## Understanding Recording Modes
+
+VoiceTypr supports two recording modes. The default is **Toggle Mode**, but you can switch to **Push-to-Talk Mode** in Settings.
+
+<Tabs>
+  <Tab title="Toggle Mode (Default)">
+    Press the hotkey once to start, press again to stop.
+    
+    **How to use:**
+    1. Press `Cmd+Shift+Space` (or your hotkey) → Recording starts
+    2. Speak your content
+    3. Press the hotkey again → Recording stops
+    
+    **Best for:**
+    - Longer dictations
+    - Hands-free operation after starting
+    - Less physically demanding on your hands
+    
+    <Info>
+      This mode is recommended for most users, especially for dictating longer content like emails or documentation.
+    </Info>
+  </Tab>
+  
+  <Tab title="Push-to-Talk Mode">
+    Hold the hotkey while speaking, release to stop.
+    
+    **How to use:**
+    1. Press and hold `Cmd+Shift+Space` → Recording starts
+    2. Speak while holding the keys
+    3. Release → Recording stops immediately
+    
+    **Best for:**
+    - Quick voice commands
+    - Precise control over recording duration
+    - Preventing accidental long recordings
+    
+    **Enable in Settings:**
+    1. Open VoiceTypr > **Settings** tab
+    2. Find **Recording Mode**
+    3. Select **Push-to-Talk**
+    
+    <Note>
+      You can also configure a separate push-to-talk hotkey different from your main recording hotkey.
+    </Note>
+  </Tab>
+</Tabs>
+
+## Essential Tips & Shortcuts
+
+### Quick Cancel (Double ESC)
+
+Made a mistake while recording? Cancel immediately without waiting for transcription.
+
+<CodeGroup>
+```bash Cancel Recording
+Press ESC twice quickly while recording
+→ Recording cancelled
+→ Audio deleted
+→ Returns to idle
+```
+</CodeGroup>
+
+**When to use:**
+- You misspoke or need to start over
+- Background noise interrupted your recording
+- You changed your mind mid-recording
+
+### Customize Your Hotkey
+
+The default hotkey works for most users, but you can customize it:
+
+1. Open VoiceTypr > **Settings** tab
+2. Click the **Recording** section
+3. Click the edit (pencil) icon next to your hotkey
+4. Press your desired key combination
+5. Click the checkmark (✓) to save
+
+<Warning>
+  Avoid system-reserved hotkeys like `Cmd+Q` (Quit) or `Cmd+Space` (Spotlight). VoiceTypr will warn you about conflicts.
+</Warning>
+
+**Recommended alternatives:**
+- `Cmd+Option+Space` (macOS)
+- `Ctrl+Alt+Space` (Windows)
+- `Cmd+Shift+R` (macOS) - "R" for Record
+- `Ctrl+Alt+V` (Windows) - "V" for Voice
+
+### Multi-Language Support
+
+VoiceTypr automatically detects 99+ languages. To set a preferred language:
+
+1. Open VoiceTypr > **Settings** tab
+2. Find **Language** dropdown
+3. Select your language (e.g., English, Spanish, French, German, Japanese)
+4. Transcriptions will be in that language
+
+<Info>
+  Whisper AI auto-detects language if you leave it on **Auto**. Only change this if you want to force a specific language.
+</Info>
+
+### View Transcription History
+
+All your transcriptions are saved automatically for easy access:
+
+1. Open VoiceTypr
+2. Navigate to **Recordings** tab
+3. View up to 50 recent transcriptions
+4. Click any transcription to copy it to your clipboard
+
+<Tip>
+  Use the history to retrieve transcriptions you forgot to paste or want to reuse.
+</Tip>
+
+## Troubleshooting Your First Recording
+
+<AccordionGroup>
+  <Accordion title="Text doesn't appear automatically" icon="exclamation-triangle">
+    **macOS:**
+    - Ensure you granted **Accessibility Permission** (see Step 3 above)
+    - Go to System Settings > Privacy & Security > Accessibility
+    - Verify Voicetypr is enabled
+    - Restart VoiceTypr after granting permission
+    
+    **Windows:**
+    - Text insertion should work automatically
+    - If not, check your clipboard - the text may be there
+    - Paste manually with `Ctrl+V` if needed
+  </Accordion>
+  
+  <Accordion title="Hotkey doesn't work" icon="keyboard">
+    **Check these:**
+    1. Verify you have microphone permission
+    2. Ensure a model is downloaded and selected
+    3. Try the hotkey in different applications
+    4. Check for conflicts with other apps' hotkeys
+    5. Restart VoiceTypr
+    
+    **Still not working?**
+    - On macOS, verify Accessibility permission is granted
+    - Try changing the hotkey in Settings
+    - Check the Overview tab for "Ready" status
+  </Accordion>
+  
+  <Accordion title="Recording shows 'No speech detected'" icon="microphone">
+    **Solutions:**
+    1. Check your microphone is connected and working
+    2. Verify microphone permission is granted
+    3. Test microphone in another app (Voice Memos, Discord, etc.)
+    4. In Settings, confirm the correct microphone is selected
+    5. Speak louder or closer to the microphone
+    6. Reduce background noise
+  </Accordion>
+  
+  <Accordion title="Transcription is inaccurate" icon="spell-check">
+    **Improve accuracy:**
+    - Speak clearly and at a moderate pace
+    - Reduce background noise
+    - Use a better quality microphone
+    - Try a larger model (small, medium, or large)
+    - Enable AI Enhancement for grammar and punctuation fixes
+    
+    **Note:** The base model has good accuracy for most use cases. Upgrade to small or medium for better results.
+  </Accordion>
+  
+  <Accordion title="Model download failed or stuck" icon="download">
+    **Solutions:**
+    1. Check your internet connection
+    2. Ensure you have 3-4 GB free disk space
+    3. Cancel and restart the download
+    4. Try downloading a smaller model first (tiny or base)
+    5. Check [GitHub Issues](https://github.com/moinulmoin/voicetypr/issues) for known problems
+    
+    **Parakeet models:** Progress may not show during download. Wait patiently - it's still downloading.
+  </Accordion>
+  
+  <Accordion title="Transcription is too slow" icon="clock">
+    **Speed improvements:**
+    
+    **macOS:**
+    - Use a smaller model (tiny or base)
+    - Ensure you have an Apple Silicon Mac for best performance
+    - Try Parakeet models (optimized for Apple Neural Engine)
+    
+    **Windows:**
+    - Update your graphics drivers for GPU acceleration (5-10x faster):
+      - [NVIDIA Drivers](https://www.nvidia.com/drivers)
+      - [AMD Drivers](https://www.amd.com/support)
+      - [Intel Drivers](https://www.intel.com/content/www/us/en/support/products/80939/graphics.html)
+    - Use a smaller model (tiny or base)
+    - VoiceTypr auto-detects GPU but falls back to CPU if unavailable
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+Now that you've completed your first transcription, explore these features:
+
+<CardGroup cols={2}>
+  <Card
+    title="AI Enhancement"
+    icon="sparkles"
+    href="/features/ai-enhancement"
+  >
+    Transform transcriptions with AI for grammar fixes, email formatting, and more
+  </Card>
+  <Card
+    title="Model Management"
+    icon="brain"
+    href="/guides/model-management"
+  >
+    Download additional models and optimize for speed vs accuracy
+  </Card>
+  <Card
+    title="Hotkey Customization"
+    icon="keyboard"
+    href="/features/hotkeys"
+  >
+    Configure custom hotkeys and recording modes
+  </Card>
+  <Card
+    title="Configuration Guide"
+    icon="sliders"
+    href="/guides/configuration"
+  >
+    Customize VoiceTypr settings to fit your workflow
+  </Card>
+</CardGroup>
+
+## Pro Tips for Power Users
+
+<AccordionGroup>
+  <Accordion title="Enable AI Enhancement for Polished Output" icon="wand-magic-sparkles">
+    Transform raw transcriptions into polished text with AI:
+    
+    1. Get a free API key from [Groq](https://console.groq.com) or [Google AI Studio](https://aistudio.google.com/apikey)
+    2. Open VoiceTypr > **Enhancements** tab
+    3. Connect your provider and enter the API key
+    4. Enable AI Enhancement toggle
+    5. Choose a preset (Default, Prompts, Email, or Commit)
+    
+    **Use cases:**
+    - **Default**: Clean up grammar and punctuation
+    - **Prompts**: Format voice into clear AI prompts for ChatGPT/Claude
+    - **Email**: Generate professional email drafts with subject lines
+    - **Commit**: Create conventional commit messages for Git
+    
+    Learn more in [AI Enhancement](/features/ai-enhancement).
+  </Accordion>
+  
+  <Accordion title="Download Multiple Models and Switch" icon="download">
+    Keep multiple models downloaded and switch based on your needs:
+    
+    **Strategy:**
+    - **tiny/base**: Fast transcription for quick notes and messages
+    - **small/medium**: Important content where accuracy matters
+    - **large**: Professional transcription, podcasts, interviews
+    
+    Switch models anytime in the **Models** tab - just click the model you want to use.
+  </Accordion>
+  
+  <Accordion title="Configure Visual and Audio Feedback" icon="eye">
+    Customize how VoiceTypr provides feedback:
+    
+    **In Settings tab:**
+    - **Pill Indicator Position**: Choose where the recording indicator appears
+    - **Play Sound on Recording**: Audio feedback when recording starts
+    - **Play Sound on Recording End**: Audio feedback when recording stops
+    - **Pill Indicator Mode**: Never, Always, or When Recording
+    
+    Adjust these settings to match your preferences and workflow.
+  </Accordion>
+  
+  <Accordion title="Enable Auto-start at Login" icon="power-off">
+    Launch VoiceTypr automatically when you log in:
+    
+    1. Open VoiceTypr > **Settings** tab
+    2. Find **Launch at startup** option
+    3. Toggle it **ON**
+    
+    Now VoiceTypr will be ready whenever you start your computer.
+  </Accordion>
+  
+  <Accordion title="Use Keyboard Shortcuts for Efficiency" icon="bolt">
+    Master these shortcuts to maximize productivity:
+    
+    - **Double ESC**: Cancel recording immediately
+    - **Cmd/Ctrl + Q**: Quit VoiceTypr
+    - **Click menu bar icon**: Open/close main window
+    - **Click transcription in history**: Copy to clipboard
+    
+    Combine with your custom hotkey for a seamless voice dictation workflow.
+  </Accordion>
+</AccordionGroup>
+
+## Platform-Specific Tips
+
+<Tabs>
+  <Tab title="macOS">
+    ### macOS Optimization
+    
+    **Apple Silicon Users (M1/M2/M3):**
+    - You get automatic Metal GPU acceleration for Whisper models
+    - Consider trying Parakeet models - optimized for Apple Neural Engine
+    - Expect faster transcription than Intel Macs
+    
+    **Permissions Troubleshooting:**
+    - Both Microphone AND Accessibility permissions are required
+    - Check System Settings > Privacy & Security if something doesn't work
+    - You may need to remove and re-add VoiceTypr in Accessibility settings
+    
+    **Integration Tips:**
+    - Works great with Spotlight, Alfred, Raycast workflows
+    - Use in Terminal, VS Code, Xcode, Notes, Mail, Messages
+    - Compatible with dictation-friendly apps like Notion, Obsidian
+    
+    **Performance:**
+    - Close memory-intensive apps before long transcriptions
+    - Larger models (medium/large) work best with 16GB+ RAM
+  </Tab>
+  
+  <Tab title="Windows">
+    ### Windows Optimization
+    
+    **GPU Acceleration (5-10x Faster):**
+    - VoiceTypr auto-detects your GPU (NVIDIA, AMD, Intel)
+    - Update drivers for best performance:
+      - [NVIDIA GeForce Drivers](https://www.nvidia.com/drivers)
+      - [AMD Radeon Drivers](https://www.amd.com/support)
+      - [Intel Graphics Drivers](https://www.intel.com/content/www/us/en/support/products/80939/graphics.html)
+    - Check Task Manager during transcription to verify GPU usage
+    
+    **CPU Fallback:**
+    - VoiceTypr works perfectly on CPU alone (just slower)
+    - Use smaller models (tiny/base) for faster CPU transcription
+    
+    **Integration Tips:**
+    - Works in PowerShell, VS Code, Notepad++, Slack, Discord, MS Teams
+    - Compatible with any app that accepts text input
+    - Try in Windows Terminal, WSL, and remote desktop sessions
+    
+    **Performance:**
+    - Close background apps to free up resources
+    - Keep Windows updated for WebView2 compatibility
+  </Tab>
+</Tabs>
+
+## Common Use Cases
+
+### For Developers
+
+```typescript
+// Dictate code comments
+/* Press hotkey and speak:
+   "This function validates user input and returns a sanitized string.
+   It handles edge cases like null values and empty strings."
+*/
+
+// Dictate commit messages (with AI Enhancement - Commit preset)
+// Speak: "Fixed the authentication bug in the login flow"
+// AI Output: "fix(auth): resolve login flow authentication issue"
+```
+
+### For Writers
+
+```markdown
+Press hotkey and speak naturally:
+"Today I want to discuss the importance of voice dictation tools 
+in modern productivity workflows. Many professionals are discovering 
+that speaking is faster and more natural than typing."
+
+VoiceTypr transcribes it perfectly with punctuation and capitalization.
+```
+
+### For Communication
+
+**Slack/Teams Messages:**
+1. Click in the message field
+2. Press hotkey and speak your message
+3. Text appears ready to send
+4. Quick and efficient communication
+
+**Email Drafting (with AI Enhancement - Email preset):**
+1. Enable Email preset in Enhancements
+2. Speak: "Hey Sarah, just checking if you received the files I sent yesterday. We need them for Friday's meeting. Thanks."
+3. AI formats it as a professional email with subject line and greeting
+
+## Getting Help
+
+If you run into issues not covered in this guide:
+
+<CardGroup cols={2}>
+  <Card
+    title="Troubleshooting Guide"
+    icon="wrench"
+    href="/troubleshooting"
+  >
+    Comprehensive solutions for common problems
+  </Card>
+  <Card
+    title="FAQ"
+    icon="question-circle"
+    href="/faq"
+  >
+    Frequently asked questions and answers
+  </Card>
+  <Card
+    title="GitHub Issues"
+    icon="github"
+    href="https://github.com/moinulmoin/voicetypr/issues"
+  >
+    Report bugs or request features
+  </Card>
+  <Card
+    title="Platform Guides"
+    icon="desktop"
+    href="/platforms/macos"
+  >
+    Platform-specific documentation (macOS/Windows)
+  </Card>
+</CardGroup>
+
+---
+
+**You're all set!** VoiceTypr is ready to transform how you input text. Press your hotkey anywhere, speak your thoughts, and watch them appear instantly.

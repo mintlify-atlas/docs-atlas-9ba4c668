@@ -1,0 +1,443 @@
+---
+title: Model Commands
+description: Tauri commands for downloading, managing, and verifying speech recognition models
+icon: download
+---
+
+Model commands handle the lifecycle of local and cloud speech recognition models (Whisper, Parakeet, Soniox).
+
+## Model Discovery
+
+### get_model_status
+
+Get status of all available speech recognition models.
+
+```rust
+#[tauri::command]
+pub async fn get_model_status(
+    whisper_state: State<'_, RwLock<WhisperManager>>,
+    parakeet_manager: State<'_, ParakeetManager>,
+    app: AppHandle,
+) -> Result<ModelStatusResponse, String>
+```
+
+**Returns:**
+
+```typescript
+interface ModelStatusResponse {
+  models: ModelInfo[];
+}
+
+interface ModelInfo {
+  name: string;              // e.g., "base.en", "parakeet-1.0", "soniox"
+  display_name: string;      // e.g., "Whisper Base English"
+  size: number;              // Bytes (0 for cloud models)
+  url: string;               // Download URL (empty for cloud)
+  sha256: string;            // Checksum (empty for cloud)
+  downloaded: boolean;       // true if available locally
+  speed_score: number;       // 1-10 (higher = faster)
+  accuracy_score: number;    // 1-10 (higher = more accurate)
+  recommended: boolean;      // Official recommendation
+  engine: 'whisper' | 'parakeet' | 'soniox';
+  kind: 'local' | 'cloud';
+  requires_setup: boolean;   // true if API key needed
+}
+```
+
+**Usage:**
+
+```typescript
+const response = await invoke<ModelStatusResponse>('get_model_status');
+
+// Filter downloaded models
+const downloaded = response.models.filter(m => m.downloaded);
+
+// Find recommended models
+const recommended = response.models.filter(m => m.recommended);
+
+// Separate by engine
+const whisperModels = response.models.filter(m => m.engine === 'whisper');
+const parakeetModels = response.models.filter(m => m.engine === 'parakeet');
+const cloudModels = response.models.filter(m => m.kind === 'cloud');
+```
+
+**Platform Behavior:**
+
+- **macOS**: Returns Whisper + Parakeet + Soniox models
+- **Windows/Linux**: Returns Whisper + Soniox only (Parakeet requires Apple Neural Engine)
+
+---
+
+### list_available_models
+
+Alias for `get_model_status` - deprecated, use `get_model_status` instead.
+
+---
+
+### get_model_info
+
+Get detailed information about a specific model.
+
+```rust
+#[tauri::command]
+pub async fn get_model_info(
+    model_name: String,
+    state: State<'_, RwLock<WhisperManager>>,
+) -> Result<ModelInfo, String>
+```
+
+<ParamField path="model_name" type="string" required>
+  Model identifier (e.g., `"base.en"`, `"large-v3"`)
+</ParamField>
+
+**Usage:**
+
+```typescript
+const info = await invoke<ModelInfo>('get_model_info', {
+  modelName: 'base.en'
+});
+
+console.log(`${info.display_name}: ${(info.size / 1024 / 1024).toFixed(1)} MB`);
+```
+
+---
+
+## Model Downloads
+
+### download_model
+
+Download a speech recognition model.
+
+```rust
+#[tauri::command]
+pub async fn download_model(
+    app: AppHandle,
+    model_name: String,
+    whisper_state: State<'_, RwLock<WhisperManager>>,
+    parakeet_manager: State<'_, ParakeetManager>,
+    active_downloads: State<'_, Arc<Mutex<HashMap<String, Arc<AtomicBool>>>>>,
+) -> Result<(), String>
+```
+
+<ParamField path="model_name" type="string" required>
+  Model to download (e.g., `"base.en"`, `"parakeet-1.0"`)
+</ParamField>
+
+**Usage:**
+
+```typescript
+// Start download (non-blocking)
+await invoke('download_model', { modelName: 'base.en' });
+
+// Listen for progress
+const unlisten = await listen('download-progress', (event) => {
+  const { model, progress, downloaded, total } = event.payload;
+  console.log(`${model}: ${progress.toFixed(1)}% (${downloaded}/${total} bytes)`);
+});
+```
+
+**Events Emitted:**
+
+1. **download-progress** - Progress updates (every ~100ms)
+   ```typescript
+   {
+     model: string;
+     engine: string;
+     downloaded: number;  // Bytes downloaded
+     total: number;       // Total bytes
+     progress: number;    // Percentage (0-100)
+   }
+   ```
+
+2. **model-verifying** - Download complete, verifying file
+   ```typescript
+   {
+     model: string;
+     engine: string;
+   }
+   ```
+
+3. **model-downloaded** - Download and verification complete
+   ```typescript
+   {
+     model: string;
+     engine: string;
+   }
+   ```
+
+4. **download-error** - Download failed
+   ```typescript
+   {
+     model: string;
+     engine: string;
+     error: string;
+   }
+   ```
+
+**Behavior:**
+
+1. Determines model engine (Whisper vs Parakeet)
+2. Downloads model file with progress tracking
+3. Verifies SHA256 checksum
+4. Refreshes model status
+5. Updates tray menu
+
+**Errors:**
+
+- `"Model already downloading"` - Download in progress
+- `"Network error"` - Connection failed
+- `"Invalid checksum"` - File corruption
+- `"Insufficient disk space"` - Not enough storage
+
+**Example with Progress UI:**
+
+```typescript
+import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
+import { useState } from 'react';
+
+function ModelDownloader({ modelName }: { modelName: string }) {
+  const [progress, setProgress] = useState(0);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const startDownload = async () => {
+    setIsDownloading(true);
+
+    const unlisten = await listen('download-progress', (event: any) => {
+      if (event.payload.model === modelName) {
+        setProgress(event.payload.progress);
+      }
+    });
+
+    try {
+      await invoke('download_model', { modelName });
+    } catch (error) {
+      console.error('Download failed:', error);
+    } finally {
+      unlisten();
+      setIsDownloading(false);
+    }
+  };
+
+  return (
+    <div>
+      <button onClick={startDownload} disabled={isDownloading}>
+        Download
+      </button>
+      {isDownloading && <progress value={progress} max={100} />}
+    </div>
+  );
+}
+```
+
+---
+
+### cancel_download
+
+Cancel an in-progress model download.
+
+```rust
+#[tauri::command]
+pub async fn cancel_download(
+    model_name: String,
+    active_downloads: State<'_, Arc<Mutex<HashMap<String, Arc<AtomicBool>>>>>,
+) -> Result<(), String>
+```
+
+<ParamField path="model_name" type="string" required>
+  Model to cancel (e.g., `"large-v3"`)
+</ParamField>
+
+**Usage:**
+
+```typescript
+await invoke('cancel_download', { modelName: 'large-v3' });
+```
+
+**Events Emitted:**
+
+- `download-cancelled`: `{ model: string, engine: string }`
+
+---
+
+## Model Management
+
+### delete_model
+
+Delete a downloaded model from disk.
+
+```rust
+#[tauri::command]
+pub async fn delete_model(
+    app: AppHandle,
+    model_name: String,
+    whisper_state: State<'_, RwLock<WhisperManager>>,
+    parakeet_manager: State<'_, ParakeetManager>,
+) -> Result<(), String>
+```
+
+<ParamField path="model_name" type="string" required>
+  Model to delete
+</ParamField>
+
+**Usage:**
+
+```typescript
+try {
+  await invoke('delete_model', { modelName: 'base.en' });
+  console.log('Model deleted successfully');
+} catch (error) {
+  console.error('Failed to delete model:', error);
+}
+```
+
+**Events Emitted:**
+
+- `model-deleted`: `{ model: string, engine: string }`
+
+**Behavior:**
+
+1. Deletes model file from disk
+2. Updates model registry
+3. Refreshes tray menu
+4. If deleted model was selected, user must choose another
+
+**Errors:**
+
+- `"Model not found"` - Model doesn't exist
+- `"Model in use"` - Currently selected or downloading
+- `"Permission denied"` - Filesystem error
+
+---
+
+### verify_model
+
+Verify a downloaded model's integrity.
+
+```rust
+#[tauri::command]
+pub async fn verify_model(
+    app: AppHandle,
+    model_name: String,
+    state: State<'_, RwLock<WhisperManager>>,
+) -> Result<(), String>
+```
+
+<ParamField path="model_name" type="string" required>
+  Model to verify
+</ParamField>
+
+**Usage:**
+
+```typescript
+try {
+  await invoke('verify_model', { modelName: 'base.en' });
+  console.log('Model verified successfully');
+} catch (error) {
+  console.error('Verification failed:', error);
+  // Model file is corrupted, re-download required
+}
+```
+
+**Behavior:**
+
+1. Checks if model file exists
+2. Validates file size (must be within 5% of expected)
+3. If corrupted, deletes file and marks as not downloaded
+
+**Errors:**
+
+- `"Model file not found"` - File missing from disk
+- `"Model is corrupted and has been deleted"` - File size mismatch
+
+---
+
+### preload_model
+
+Preload a model into memory for faster transcription.
+
+```rust
+#[tauri::command]
+pub async fn preload_model(
+    app: AppHandle,
+    model_name: String,
+    state: State<'_, RwLock<WhisperManager>>,
+) -> Result<(), String>
+```
+
+<ParamField path="model_name" type="string" required>
+  Model to preload (Whisper only)
+</ParamField>
+
+**Usage:**
+
+```typescript
+// Preload model on app startup for instant transcription
+await invoke('preload_model', { modelName: 'base.en' });
+console.log('Model ready for instant transcription');
+```
+
+**Behavior:**
+
+- Loads model into TranscriberCache
+- Subsequent transcriptions use cached model (no load time)
+- Only applies to Whisper models
+- Parakeet and Soniox models are always "instant"
+
+**Errors:**
+
+- `"Model not found"` - Model not downloaded
+- `"License required to preload models"` - Invalid license
+
+---
+
+## List Commands
+
+### list_downloaded_models
+
+Get list of downloaded model filenames.
+
+```rust
+#[tauri::command]
+pub async fn list_downloaded_models(
+    state: State<'_, RwLock<WhisperManager>>,
+) -> Result<Vec<String>, String>
+```
+
+**Returns:** Array of model names
+
+**Usage:**
+
+```typescript
+const models = await invoke<string[]>('list_downloaded_models');
+console.log('Downloaded:', models.join(', '));
+```
+
+---
+
+## Model Selection
+
+Models are selected via [Settings Commands](/api/commands/settings):
+
+```typescript
+import { invoke } from '@tauri-apps/api/core';
+
+// Get current settings
+const settings = await invoke<AppSettings>('get_settings');
+console.log('Current model:', settings.current_model);
+
+// Update selected model
+await invoke('save_settings', {
+  settings: {
+    ...settings,
+    current_model: 'base.en',
+    current_model_engine: 'whisper'
+  }
+});
+```
+
+## See Also
+
+- [Model Management Hook](/api/hooks/model-management) - React hook for model operations
+- [Settings Commands](/api/commands/settings) - Model selection settings
+- [Audio Commands](/api/commands/audio) - Using models for transcription

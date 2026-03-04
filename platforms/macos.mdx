@@ -1,0 +1,253 @@
+---
+title: 'macOS Platform'
+description: 'VoiceTypr features and requirements for macOS'
+icon: 'apple'
+---
+
+## Overview
+
+VoiceTypr is fully optimized for macOS with native features including Metal acceleration, Apple Neural Engine support, and seamless system integration.
+
+## System Requirements
+
+### Minimum Requirements
+
+- **macOS Version**: 13.0 (Ventura) or later
+- **Free Disk Space**: 3-4 GB (for AI models)
+- **Memory**: 8 GB RAM recommended
+- **Processor**: Apple Silicon or Intel Mac
+
+### Recommended
+
+- **macOS Version**: 14.0 (Sonoma) or later
+- **Processor**: Apple Silicon (M1, M2, M3, or newer) for best performance
+- **Free Disk Space**: 5+ GB for multiple models
+
+## Installation
+
+### From DMG
+
+1. Download the latest `VoiceTypr.dmg` from [GitHub Releases](https://github.com/moinulmoin/voicetypr/releases/latest)
+2. Open the DMG file
+3. Drag **VoiceTypr** to your **Applications** folder
+4. Launch VoiceTypr from Applications
+5. Follow the onboarding wizard to:
+   - Grant required permissions
+   - Download your preferred AI model
+   - Set up your recording hotkey
+
+<Note>
+VoiceTypr is fully **signed and notarized** by Apple, so you can run it without security warnings.
+</Note>
+
+## macOS-Specific Features
+
+### NSPanel Integration
+
+VoiceTypr uses NSPanel for the recording pill window, which:
+
+- Floats above all windows without stealing focus
+- Appears when recording starts
+- Provides real-time visual feedback
+- Doesn't disrupt your workflow
+
+### Metal Acceleration
+
+When using Whisper models, VoiceTypr leverages **Metal** for GPU-accelerated transcription:
+
+- Automatically uses Metal on all Macs (Intel and Apple Silicon)
+- Falls back to CPU if Metal initialization fails
+- 2-5x faster transcription than CPU-only mode
+- Zero configuration required
+
+### Apple Neural Engine (Parakeet Models)
+
+For Apple Silicon Macs, VoiceTypr offers exclusive access to Parakeet models:
+
+- **Native CoreML** implementation via FluidAudio SDK
+- Runs on the **Apple Neural Engine** for exceptional efficiency
+- Lightweight 1.2MB Swift sidecar (vs 123MB Python alternative)
+- On-demand model download (~500MB)
+- Optimized for real-time transcription
+- macOS 13.0+ required
+
+<Info>
+**Parakeet models** are only available on macOS with Apple Silicon. Intel Macs and other platforms use Whisper models.
+</Info>
+
+## Required Permissions
+
+VoiceTypr requires two system permissions on macOS:
+
+### 1. Microphone Access
+
+**Required for**: Recording your voice
+
+- Prompt appears on first recording attempt
+- Navigate to: **System Settings → Privacy & Security → Microphone**
+- Enable for VoiceTypr
+
+### 2. Accessibility Access
+
+**Required for**: Automatic text insertion at cursor position
+
+- Navigate to: **System Settings → Privacy & Security → Accessibility**
+- Click the **+** button
+- Add VoiceTypr from Applications
+- Toggle the checkbox to enable
+
+<Warning>
+Without Accessibility permission, VoiceTypr cannot automatically insert transcribed text. You'll need to paste manually.
+</Warning>
+
+## Platform Integration
+
+### Dock Icon Management
+
+VoiceTypr intelligently manages its Dock icon:
+
+- **Hidden** when only the menubar is visible
+- **Shown** when the main window is open
+- Reduces clutter while maintaining accessibility
+
+### Media Remote Integration
+
+On macOS, VoiceTypr integrates with system media controls:
+
+- Recording status visible in media remote
+- Provides context for active recording sessions
+
+### Menubar Access
+
+The menubar icon provides quick access to:
+
+- Start/stop recording
+- Recent transcriptions (copy to clipboard)
+- Model selection
+- Recording mode (Push-to-Talk / Toggle)
+- Check for updates
+- Open settings
+
+## Code Signing & Notarization
+
+All VoiceTypr releases for macOS are:
+
+- **Code signed** with a valid Apple Developer ID
+- **Notarized** by Apple for added security
+- **Gatekeeper approved** - no security warnings on launch
+
+This ensures a safe, trusted installation experience.
+
+## Model Management
+
+### Whisper Models (All Macs)
+
+Supported Whisper models with Metal acceleration:
+
+- **Tiny** - Fastest, lower accuracy (~75 MB)
+- **Base** - Balanced speed/accuracy (~142 MB)
+- **Small** - Recommended for most users (~466 MB)
+- **Medium** - High accuracy (~1.5 GB)
+- **Large** - Best accuracy, slower (~2.9 GB)
+
+### Parakeet Models (Apple Silicon Only)
+
+- **Parakeet TDT 0.6B v3** - CoreML optimized (~500 MB)
+- Uses Apple Neural Engine for efficient transcription
+- Download on-demand via Settings
+- Cached in `~/Library/Application Support/FluidAudio/`
+
+<Tip>
+For Apple Silicon Macs, try Parakeet models for the best balance of speed and accuracy with minimal battery impact.
+</Tip>
+
+## Performance Characteristics
+
+### Apple Silicon (M1/M2/M3+)
+
+- **Whisper (Metal)**: 2-5x real-time speed
+- **Parakeet (ANE)**: Near real-time with exceptional efficiency
+- **Battery Impact**: Minimal with Parakeet, moderate with Whisper
+- **Memory Usage**: 100-500 MB depending on model
+
+### Intel Macs
+
+- **Whisper (Metal)**: 1-3x real-time speed
+- **Battery Impact**: Moderate to high during transcription
+- **Memory Usage**: 200-600 MB depending on model
+
+## Troubleshooting
+
+### App Won't Open
+
+**Issue**: "VoiceTypr is damaged and can't be opened"
+
+**Solution**: This usually indicates Gatekeeper issues. Run:
+```bash
+xattr -cr /Applications/VoiceTypr.app
+```
+
+### Metal Acceleration Not Working
+
+**Issue**: Slow transcription performance
+
+**Solution**:
+1. Check Console.app for Metal errors
+2. Update macOS to the latest version
+3. VoiceTypr automatically falls back to CPU if Metal fails
+
+### Parakeet Model Download Fails
+
+**Issue**: Model download stalls or fails
+
+**Solution**:
+1. Ensure you have 2+ GB free disk space
+2. Check your internet connection
+3. Try deleting and re-downloading:
+   - **Settings → Advanced → Reset App Data**
+   - Restart VoiceTypr
+   - Re-download the model
+
+### Accessibility Permission Denied
+
+**Issue**: Text insertion doesn't work
+
+**Solution**:
+1. Open **System Settings → Privacy & Security → Accessibility**
+2. Find VoiceTypr in the list
+3. Toggle it **off** then **on** again
+4. Restart VoiceTypr
+
+## Updates
+
+VoiceTypr includes automatic update checking:
+
+- Checks for updates on launch (requires internet)
+- Downloads updates in the background
+- Notifies when ready to install
+- **Menubar → Check for Updates** for manual check
+
+<Info>
+Update checks are the **only** internet connection required for normal operation. All transcription happens offline.
+</Info>
+
+## Uninstalling
+
+To completely remove VoiceTypr:
+
+1. **Quit VoiceTypr** from the menubar
+2. **Delete the app**: Drag VoiceTypr from Applications to Trash
+3. **Remove app data** (optional):
+   ```bash
+   rm -rf ~/Library/Application\ Support/com.voicetypr.app
+   rm -rf ~/Library/Application\ Support/FluidAudio
+   rm -rf ~/Library/Caches/FluidAudio
+   rm -rf ~/Library/Preferences/com.voicetypr.app.plist
+   ```
+
+## See Also
+
+- [System Requirements](/guides/system-requirements)
+- [GPU Acceleration](/guides/gpu-acceleration)
+- [Troubleshooting](/troubleshooting)
+- [FAQ](/faq)

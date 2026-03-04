@@ -1,0 +1,369 @@
+---
+title: AI Models
+description: Understanding VoiceTypr's AI models, including Whisper and Parakeet support, model sizes, hardware acceleration, and management.
+---
+
+## Overview
+
+VoiceTypr supports multiple AI transcription engines with various model sizes to balance speed and accuracy based on your needs. All models run locally on your device for complete privacy.
+
+## Supported Engines
+
+<CardGroup cols={2}>
+  <Card title="Whisper" icon="robot">
+    OpenAI's Whisper models provide excellent accuracy across 99+ languages with multiple size options.
+  </Card>
+  <Card title="Parakeet" icon="bird">
+    NVIDIA Parakeet models optimized for Apple Silicon, offering fast transcription using the Neural Engine.
+  </Card>
+</CardGroup>
+
+## Model Types
+
+VoiceTypr distinguishes between local and cloud models:
+
+```typescript
+type SpeechModelEngine = 'whisper' | 'parakeet' | 'soniox';
+type ModelKind = 'local' | 'cloud';
+
+interface LocalModelInfo {
+  kind: 'local';
+  name: string;              // Internal identifier
+  display_name: string;      // User-friendly name
+  engine: SpeechModelEngine; // Which engine runs this model
+  size: number;              // Download size in bytes
+  speed_score: number;       // Speed rating (1-10)
+  accuracy_score: number;    // Accuracy rating (1-10)
+  recommended: boolean;      // Is this a recommended model?
+  downloaded: boolean;       // Is it downloaded locally?
+  requires_setup: boolean;   // Does it need configuration?
+  url: string;              // Download URL
+  sha256: string;           // Checksum for verification
+}
+```
+
+## Whisper Models
+
+### Available Sizes
+
+Whisper models come in multiple sizes, each with different speed and accuracy tradeoffs:
+
+<Tabs>
+  <Tab title="Tiny">
+    **Whisper Tiny** (~75 MB)
+    
+    - **Speed Score**: 10/10 ⚡
+    - **Accuracy Score**: 6/10
+    - **Best for**: Quick drafts, testing, low-power devices
+    - **Languages**: Multilingual
+    
+    The smallest and fastest model. Good for quick notes when accuracy isn't critical.
+  </Tab>
+  
+  <Tab title="Base">
+    **Whisper Base** (~150 MB)
+    
+    - **Speed Score**: 9/10 ⚡
+    - **Accuracy Score**: 7/10
+    - **Best for**: Balanced everyday use
+    - **Languages**: Multilingual
+    
+    A good balance of speed and accuracy for most use cases.
+  </Tab>
+  
+  <Tab title="Small">
+    **Whisper Small** (~500 MB) - Recommended ⭐
+    
+    - **Speed Score**: 7/10
+    - **Accuracy Score**: 8/10
+    - **Best for**: General purpose transcription
+    - **Languages**: Multilingual
+    
+    The recommended default. Excellent accuracy with acceptable speed.
+  </Tab>
+  
+  <Tab title="Medium">
+    **Whisper Medium** (~1.5 GB)
+    
+    - **Speed Score**: 5/10
+    - **Accuracy Score**: 9/10
+    - **Best for**: High-accuracy transcription, technical content
+    - **Languages**: Multilingual
+    
+    Better accuracy than Small, but slower. Good for professional use.
+  </Tab>
+  
+  <Tab title="Large">
+    **Whisper Large** (~3 GB)
+    
+    - **Speed Score**: 3/10
+    - **Accuracy Score**: 10/10
+    - **Best for**: Maximum accuracy, complex audio
+    - **Languages**: Multilingual
+    
+    The most accurate model but slowest. Best for difficult transcription tasks.
+  </Tab>
+</Tabs>
+
+### English-Only Models
+
+Whisper also offers English-only variants (`.en` suffix) that are optimized for English:
+
+```typescript
+"tiny.en"   // Tiny English-only
+"base.en"   // Base English-only  
+"small.en"  // Small English-only
+"medium.en" // Medium English-only
+```
+
+<Info>
+  English-only models are smaller, faster, and more accurate **for English** compared to their multilingual counterparts.
+</Info>
+
+## Parakeet Models
+
+Parakeet models are available on **macOS only** and leverage Apple's Neural Engine for hardware acceleration.
+
+### Available Models
+
+<Tabs>
+  <Tab title="Parakeet 1.1B">
+    **Parakeet 1.1B** (~1.3 GB)
+    
+    - **Speed Score**: 8/10
+    - **Accuracy Score**: 8/10
+    - **Languages**: Multilingual (100+ languages)
+    - **Hardware**: Apple Neural Engine
+    
+    Multilingual support with good performance on Apple Silicon.
+  </Tab>
+  
+  <Tab title="Parakeet 1.1B v2">
+    **Parakeet 1.1B v2** (~1.3 GB)
+    
+    - **Speed Score**: 9/10
+    - **Accuracy Score**: 9/10
+    - **Languages**: English only
+    - **Hardware**: Apple Neural Engine
+    
+    English-only variant optimized for Apple Neural Engine.
+  </Tab>
+</Tabs>
+
+<Warning>
+  Parakeet models are macOS-exclusive and require an Apple Silicon Mac (M1, M2, M3, or newer). They will not run on Intel Macs or other platforms.
+</Warning>
+
+## Hardware Acceleration
+
+VoiceTypr automatically uses hardware acceleration when available for maximum performance.
+
+### macOS
+
+- **Whisper**: Uses **Metal GPU acceleration** via Apple's Metal Performance Shaders
+- **Parakeet**: Uses **Apple Neural Engine** for ultra-fast inference
+- **Requirements**: macOS 13.0+ (Ventura or later)
+
+### Windows
+
+- **Whisper**: Supports **GPU acceleration** via DirectML
+- **Compatible GPUs**: NVIDIA, AMD, and Intel GPUs
+- **Fallback**: Automatically uses CPU if GPU unavailable or drivers missing
+
+<Tip>
+  On Windows, ensure your graphics drivers are up to date for 5-10x faster transcription:
+  - [NVIDIA Drivers](https://www.nvidia.com/drivers)
+  - [AMD Drivers](https://www.amd.com/support)  
+  - [Intel Drivers](https://www.intel.com/content/www/us/en/support/products/80939/graphics.html)
+</Tip>
+
+## Model Management
+
+### Downloading Models
+
+<Steps>
+  <Step title="Open Models Tab">
+    Click the VoiceTypr menubar icon and go to the **Models** tab.
+  </Step>
+  
+  <Step title="Browse Available Models">
+    Models are organized into two sections:
+    - **Available to Use**: Already downloaded and ready
+    - **Available to Setup**: Need to be downloaded first
+  </Step>
+  
+  <Step title="Download a Model">
+    Click the **Download** button on any model. Progress is shown in real-time.
+  </Step>
+  
+  <Step title="Verify and Activate">
+    After download, the model is verified using SHA-256 checksum and automatically becomes available for use.
+  </Step>
+</Steps>
+
+### Download Progress Tracking
+
+Download progress is tracked in real-time:
+
+```typescript
+downloadProgress: Record<string, number>  // modelName -> percentage (0-100)
+```
+
+You can cancel an in-progress download at any time:
+
+```typescript
+cancelDownload(modelName: string)
+```
+
+### Model Verification
+
+All downloaded models are verified using SHA-256 checksums to ensure integrity:
+
+```typescript
+verifyingModels: Set<string>  // Models currently being verified
+```
+
+<Note>
+  Model verification happens automatically after download. If verification fails, the download is considered corrupted and must be retried.
+</Note>
+
+### Deleting Models
+
+To free up disk space, you can delete models you no longer need:
+
+<Steps>
+  <Step title="Navigate to Models">
+    Open the **Models** tab in VoiceTypr.
+  </Step>
+  
+  <Step title="Find Downloaded Model">
+    Locate the model in the "Available to Use" section.
+  </Step>
+  
+  <Step title="Delete">
+    Click the delete/trash icon on the model card.
+  </Step>
+</Steps>
+
+<Warning>
+  If you delete the currently active model, VoiceTypr will clear your model selection. You'll need to select and download a new model before transcription will work.
+</Warning>
+
+### Model Selection
+
+To switch between downloaded models:
+
+1. Go to the **Models** tab
+2. Click on any downloaded model to select it
+3. The selected model is saved in settings:
+
+```typescript
+current_model: string;           // Model name
+current_model_engine: 'whisper' | 'parakeet' | 'soniox';
+```
+
+## Choosing the Right Model
+
+Use this guide to select the best model for your needs:
+
+<AccordionGroup>
+  <Accordion title="I want the fastest possible transcription">
+    **Recommended**: Whisper Tiny or Tiny.en
+    
+    - Fastest inference times
+    - Good for quick notes and drafts
+    - Trade-off: Lower accuracy
+  </Accordion>
+  
+  <Accordion title="I need the best accuracy">
+    **Recommended**: Whisper Large or Medium
+    
+    - Highest accuracy scores
+    - Best for professional transcription
+    - Trade-off: Slower processing
+    
+    Consider enabling [AI Enhancement](/features/ai-enhancement) to further improve output quality.
+  </Accordion>
+  
+  <Accordion title="I want balanced performance (recommended)">
+    **Recommended**: Whisper Small or Small.en ⭐
+    
+    - Excellent balance of speed and accuracy
+    - Default recommended model
+    - Good for most daily use cases
+  </Accordion>
+  
+  <Accordion title="I have an Apple Silicon Mac">
+    **Recommended**: Parakeet 1.1B v2 (English) or Parakeet 1.1B (Multilingual)
+    
+    - Optimized for Apple Neural Engine
+    - Faster than Whisper on M-series chips
+    - Great accuracy
+  </Accordion>
+  
+  <Accordion title="I transcribe non-English languages">
+    **Recommended**: Whisper Small, Medium, or Large (multilingual variants)
+    
+    - Support for 99+ languages
+    - Avoid `.en` suffix models (English-only)
+    - Parakeet 1.1B also supports 100+ languages
+  </Accordion>
+</AccordionGroup>
+
+## Disk Space Requirements
+
+Ensure you have enough free disk space before downloading models:
+
+| Model | Size |
+|-------|------|
+| Whisper Tiny | ~75 MB |
+| Whisper Base | ~150 MB |
+| Whisper Small | ~500 MB |
+| Whisper Medium | ~1.5 GB |
+| Whisper Large | ~3 GB |
+| Parakeet 1.1B | ~1.3 GB |
+
+<Info>
+  You only need **one model** to use VoiceTypr. The recommended Whisper Small model requires just 500 MB.
+</Info>
+
+## Model Storage Location
+
+Downloaded models are stored in:
+
+- **macOS**: `~/Library/Application Support/com.voicetypr.app/models/`
+- **Windows**: `%APPDATA%\com.voicetypr.app\models\`
+
+## Troubleshooting
+
+### Download Failed
+
+1. Check your internet connection
+2. Ensure you have enough free disk space
+3. Try canceling and restarting the download
+4. Check firewall/antivirus isn't blocking the download
+
+### Verification Failed
+
+If SHA-256 verification fails:
+
+1. Delete the corrupted model
+2. Retry the download
+3. Check for disk errors if it continues failing
+
+### Model Not Appearing
+
+If a downloaded model doesn't appear:
+
+1. Click "Refresh Models" in the Models tab
+2. Restart VoiceTypr
+3. Check the model storage location manually
+
+### Slow Transcription
+
+If transcription is slower than expected:
+
+- **macOS**: Ensure you're using a model compatible with Metal acceleration
+- **Windows**: Update your GPU drivers for hardware acceleration
+- Try a smaller/faster model (Tiny or Base)
+- Close resource-intensive applications

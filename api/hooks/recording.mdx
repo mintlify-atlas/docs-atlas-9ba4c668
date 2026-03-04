@@ -1,0 +1,402 @@
+---
+title: useRecording Hook
+description: React hook for managing recording state and controls
+icon: circle-dot
+---
+
+The `useRecording` hook provides a React-friendly interface for audio recording, automatically syncing with backend state via Tauri events.
+
+## Import
+
+```typescript
+import { useRecording } from '@/hooks/useRecording';
+```
+
+## Usage
+
+```typescript
+function RecordingButton() {
+  const { state, error, startRecording, stopRecording, isActive } = useRecording();
+
+  return (
+    <div>
+      <button 
+        onClick={state === 'recording' ? stopRecording : startRecording}
+        disabled={state === 'starting' || state === 'stopping'}
+      >
+        {state === 'recording' ? 'Stop Recording' : 'Start Recording'}
+      </button>
+      
+      {error && <p className="error">{error}</p>}
+      {isActive && <p>Session active</p>}
+    </div>
+  );
+}
+```
+
+## Return Values
+
+### state
+
+**Type:** `RecordingState`
+
+```typescript
+type RecordingState = 'idle' | 'starting' | 'recording' | 'stopping' | 'transcribing' | 'error';
+```
+
+Current recording state, automatically synchronized with backend.
+
+**States:**
+
+| State | Description |
+|-------|-------------|
+| `idle` | No recording in progress |
+| `starting` | Initializing microphone |
+| `recording` | Actively recording audio |
+| `stopping` | Finalizing audio file |
+| `transcribing` | Processing audio to text |
+| `error` | An error occurred (check `error` field) |
+
+---
+
+### error
+
+**Type:** `string | null`
+
+Error message if state is `'error'`, otherwise `null`.
+
+**Example Errors:**
+
+- `"Microphone permission denied"`
+- `"No models installed"`
+- `"License required to record"`
+
+---
+
+### startRecording
+
+**Type:** `() => Promise<void>`
+
+Start a new recording session.
+
+**Usage:**
+
+```typescript
+const handleStart = async () => {
+  try {
+    await startRecording();
+    console.log('Recording started');
+  } catch (error) {
+    console.error('Failed to start:', error);
+  }
+};
+```
+
+**Behavior:**
+
+- Invokes `start_recording` Tauri command
+- State updates are handled by backend events (not the return value)
+- Errors are emitted via `recording-state-changed` events
+
+---
+
+### stopRecording
+
+**Type:** `() => Promise<void>`
+
+Stop the current recording and trigger transcription.
+
+**Usage:**
+
+```typescript
+const handleStop = async () => {
+  try {
+    await stopRecording();
+    console.log('Recording stopped, transcribing...');
+  } catch (error) {
+    console.error('Failed to stop:', error);
+  }
+};
+```
+
+---
+
+### isActive
+
+**Type:** `boolean`
+
+Whether a recording session is active (not `idle` or `error`).
+
+**Equivalent to:**
+
+```typescript
+const isActive = state !== 'idle' && state !== 'error';
+```
+
+**Use Case:** Preventing auto-updates during recording
+
+```typescript
+const { isActive } = useRecording();
+
+useEffect(() => {
+  if (isActive) {
+    // Don't auto-update while recording
+    updateService.setSessionActive(true);
+  } else {
+    updateService.setSessionActive(false);
+  }
+}, [isActive]);
+```
+
+---
+
+## Events Listened
+
+The hook automatically subscribes to these backend events:
+
+### recording-state-changed
+
+**Payload:**
+
+```typescript
+{
+  state: RecordingState;
+  error?: string | null;
+}
+```
+
+**Description:** Primary state synchronization event. Updates `state` and `error`.
+
+---
+
+### recording-started
+
+**Payload:** `void`
+
+**Description:** Legacy event, sets state to `'recording'` and clears error.
+
+---
+
+### recording-timeout
+
+**Payload:** `void`
+
+**Description:** Recording exceeded maximum duration, sets state to `'stopping'`.
+
+---
+
+### recording-stopped-silence
+
+**Payload:** `void`
+
+**Description:** Recording stopped due to silence detection.
+
+---
+
+### transcription-started
+
+**Payload:** `void`
+
+**Description:** Audio processing began, sets state to `'transcribing'`.
+
+---
+
+## Component Examples
+
+### Basic Recording Button
+
+```typescript
+import { useRecording } from '@/hooks/useRecording';
+
+function RecordButton() {
+  const { state, startRecording, stopRecording } = useRecording();
+
+  const isRecording = state === 'recording';
+  const isDisabled = state === 'starting' || state === 'stopping' || state === 'transcribing';
+
+  return (
+    <button
+      onClick={isRecording ? stopRecording : startRecording}
+      disabled={isDisabled}
+      className={isRecording ? 'recording' : ''}
+    >
+      {state === 'recording' && '⏹ Stop'}
+      {state === 'idle' && '⏺ Record'}
+      {state === 'starting' && 'Starting...'}
+      {state === 'stopping' && 'Stopping...'}
+      {state === 'transcribing' && 'Transcribing...'}
+    </button>
+  );
+}
+```
+
+---
+
+### Recording Status Display
+
+```typescript
+import { useRecording } from '@/hooks/useRecording';
+
+function RecordingStatus() {
+  const { state, error, isActive } = useRecording();
+
+  return (
+    <div className="status">
+      <div className={`indicator ${state}`}>
+        <span className="dot" />
+        <span className="label">{state.toUpperCase()}</span>
+      </div>
+
+      {isActive && (
+        <div className="active-session">
+          Session in progress
+        </div>
+      )}
+
+      {error && (
+        <div className="error">
+          <strong>Error:</strong> {error}
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+---
+
+### Keyboard Shortcuts
+
+```typescript
+import { useRecording } from '@/hooks/useRecording';
+import { useEffect } from 'react';
+
+function RecordingWithShortcuts() {
+  const { state, startRecording, stopRecording } = useRecording();
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // ESC to cancel
+      if (e.key === 'Escape' && state === 'recording') {
+        stopRecording();
+      }
+      
+      // Space to toggle (if not typing)
+      if (e.key === ' ' && e.target === document.body) {
+        e.preventDefault();
+        if (state === 'recording') {
+          stopRecording();
+        } else if (state === 'idle') {
+          startRecording();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [state, startRecording, stopRecording]);
+
+  return (
+    <div>
+      <p>Press Space to toggle recording, ESC to cancel</p>
+    </div>
+  );
+}
+```
+
+---
+
+### Error Handling
+
+```typescript
+import { useRecording } from '@/hooks/useRecording';
+import { toast } from 'sonner';
+import { useEffect } from 'react';
+
+function RecordingWithErrorHandling() {
+  const { state, error, startRecording, stopRecording } = useRecording();
+
+  // Show error toasts
+  useEffect(() => {
+    if (state === 'error' && error) {
+      if (error.includes('permission')) {
+        toast.error('Microphone permission denied. Please grant access in System Settings.');
+      } else if (error.includes('model')) {
+        toast.error('No speech recognition models installed. Download a model first.');
+      } else if (error.includes('license')) {
+        toast.error('License expired. Please renew your subscription.');
+      } else {
+        toast.error(`Recording error: ${error}`);
+      }
+    }
+  }, [state, error]);
+
+  return (
+    <button onClick={state === 'recording' ? stopRecording : startRecording}>
+      Record
+    </button>
+  );
+}
+```
+
+---
+
+## TypeScript Types
+
+```typescript
+type RecordingState = 'idle' | 'starting' | 'recording' | 'stopping' | 'transcribing' | 'error';
+
+interface UseRecordingReturn {
+  state: RecordingState;
+  error: string | null;
+  startRecording: () => Promise<void>;
+  stopRecording: () => Promise<void>;
+  isActive: boolean;
+}
+
+function useRecording(): UseRecordingReturn;
+```
+
+---
+
+## Implementation Details
+
+### Initial State Check
+
+On mount, the hook fetches the current recording state from the backend:
+
+```typescript
+useEffect(() => {
+  const checkInitialState = async () => {
+    const currentState = await invoke<{ state: RecordingState; error: string | null }>(
+      'get_current_recording_state'
+    );
+    setState(currentState.state);
+    setError(currentState.error);
+  };
+  checkInitialState();
+}, []);
+```
+
+---
+
+### Update Service Integration
+
+The hook automatically notifies the update service to prevent auto-updates during recording:
+
+```typescript
+import { updateService } from '@/services/updateService';
+
+useEffect(() => {
+  const isActive = state !== 'idle' && state !== 'error';
+  updateService.setSessionActive(isActive);
+}, [state]);
+```
+
+---
+
+## See Also
+
+- [Audio Commands](/api/commands/audio) - Backend recording commands
+- [usePermissions Hook](/api/hooks/permissions) - Permission management
+- [useModelManagement Hook](/api/hooks/model-management) - Model selection

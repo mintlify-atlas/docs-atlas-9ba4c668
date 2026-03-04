@@ -1,0 +1,501 @@
+---
+title: 'Frequently Asked Questions'
+description: 'Common questions about VoiceTypr'
+icon: 'question'
+---
+
+## General Questions
+
+<Accordion title="What is VoiceTypr?">
+VoiceTypr is an open source, AI-powered voice-to-text dictation tool for macOS and Windows. It's an alternative to proprietary tools like Wispr Flow and SuperWhisper, offering:
+
+- **100% offline transcription** - your voice never leaves your device
+- **System-wide hotkey** - record anywhere with a single keystroke
+- **Automatic text insertion** - transcribed text appears at your cursor
+- **Multiple AI models** - choose between speed and accuracy
+- **99+ languages supported** - automatic language detection
+- **Open source** - full transparency under AGPL-3.0 license
+
+**Pay once, use forever** - no subscriptions or cloud dependencies.
+</Accordion>
+
+<Accordion title="Is VoiceTypr really offline?">
+Yes! **VoiceTypr is 100% offline** for core transcription:
+
+- AI models run entirely on your device (CPU or GPU)
+- Your voice recordings never leave your computer
+- No internet connection required for transcription
+
+**The only internet connections are for**:
+
+- **Initial model downloads** (~75 MB to 2.9 GB, one-time per model)
+- **Update checks** (optional, checks GitHub for new versions)
+- **License validation** (trial check only, with 90-day offline grace period)
+- **AI Enhancement** (optional feature using Groq/Gemini/OpenAI APIs)
+
+All other operations work completely offline, including recording, transcription, and text insertion.
+</Accordion>
+
+<Accordion title="Is my data private?">
+**Absolutely.** VoiceTypr is privacy-first by design:
+
+- **No cloud uploads** - all transcription happens on your device
+- **No telemetry or tracking** - we don't collect usage data
+- **No third-party analytics** - zero external services
+- **Open source** - you can verify the code yourself
+
+Your recordings are:
+- Stored temporarily during transcription
+- Automatically deleted after processing
+- Never sent to any server
+
+The only data that leaves your device is:
+- **Update checks** to GitHub (just version number)
+- **Optional AI Enhancement** (if you enable it and provide API keys)
+</Accordion>
+
+<Accordion title="What's the difference between VoiceTypr and SuperWhisper/Wispr Flow?">
+| Feature | VoiceTypr | SuperWhisper | Wispr Flow |
+|---------|-----------|--------------|------------|
+| **Price** | Pay once | Subscription | Subscription |
+| **Open Source** | ✅ Yes (AGPL-3.0) | ❌ No | ❌ No |
+| **Offline** | ✅ 100% | ✅ Yes | ✅ Yes |
+| **Platforms** | macOS, Windows | macOS only | macOS, Windows |
+| **GPU Acceleration** | Metal, Vulkan, ANE | Metal only | Metal only |
+| **AI Models** | Whisper, Parakeet | Whisper | Whisper |
+| **AI Enhancement** | Groq, Gemini, OpenAI | Built-in | Built-in |
+| **Custom Hotkeys** | ✅ Yes | ✅ Yes | ✅ Yes |
+| **Multi-language** | 99+ languages | 99+ languages | 99+ languages |
+
+**Key advantages of VoiceTypr**:
+- **Open source** - full transparency and community contributions
+- **One-time payment** - no recurring costs
+- **Windows support** with Vulkan GPU acceleration
+- **Apple Neural Engine** support via Parakeet models
+- **Community-driven development**
+</Accordion>
+
+---
+
+## Pricing & Licensing
+
+<Accordion title="How much does VoiceTypr cost?">
+VoiceTypr uses a **pay-once, use forever** licensing model:
+
+- **Free trial**: Full-featured trial period
+- **Lifetime license**: One-time payment for permanent access
+- **No subscriptions**: Pay once, own it forever
+- **Free updates**: All future updates included
+
+**Important**: VoiceTypr is open source (AGPL-3.0), so you can also:
+- Build from source for free (for personal use)
+- Contribute to development
+- Fork and modify (must remain open source)
+
+Commercial use of pre-built binaries requires a license.
+
+Check the [website](https://voicetypr.com) for current pricing.
+</Accordion>
+
+<Accordion title="What happens when my trial ends?">
+VoiceTypr has a **90-day offline grace period** after trial ends:
+
+- You can continue using VoiceTypr offline for 90 days
+- Internet connection required to activate a license
+- Trial status is checked on launch (requires internet)
+- After grace period, you must activate or VoiceTypr will be limited
+
+**To activate after trial**:
+1. Purchase a license key
+2. Open VoiceTypr → Settings → License
+3. Enter your license key
+4. Click "Activate"
+
+Your license is tied to your device ID and works offline indefinitely after activation.
+</Accordion>
+
+<Accordion title="Can I use VoiceTypr on multiple computers?">
+License terms vary by purchase option. Typically:
+
+- **Single license**: One device
+- **Multi-device licenses**: Available for purchase
+- **Device ID**: Tied to hardware (OS metadata + system info)
+
+**To transfer license**:
+1. Deactivate on old device (Settings → License → Deactivate)
+2. Activate on new device with same license key
+
+Contact support for multi-device licensing options.
+</Accordion>
+
+<Accordion title="Is VoiceTypr really open source?">
+Yes! VoiceTypr is licensed under **AGPL-3.0**:
+
+- **Source code available**: [GitHub repository](https://github.com/moinulmoin/voicetypr)
+- **Build from source**: Instructions in README
+- **Contributions welcome**: Pull requests accepted
+- **Fork allowed**: Must remain open source (AGPL-3.0)
+
+**What this means**:
+- You can inspect all code
+- You can build for personal use without a license
+- Commercial use of pre-built binaries requires a license
+- Modifications must also be open sourced
+
+This ensures transparency and privacy while supporting sustainable development.
+</Accordion>
+
+---
+
+## Platform Support
+
+<Accordion title="Which operating systems are supported?">
+**macOS**:
+- macOS 13.0 (Ventura) or later
+- Intel and Apple Silicon (M1/M2/M3+) Macs
+- DMG installer available
+- Exclusive Parakeet model support (Apple Silicon only)
+
+**Windows**:
+- Windows 10 (64-bit) or Windows 11
+- x64 and ARM64 architectures
+- NSIS installer with GPU detection
+- Vulkan GPU acceleration support
+
+**Linux**: Not currently supported (contributions welcome!)
+
+**iOS/Android**: Not planned (requires different architecture)
+</Accordion>
+
+<Accordion title="Does VoiceTypr work on Intel Macs?">
+Yes! VoiceTypr supports **both Intel and Apple Silicon Macs**:
+
+**Intel Macs**:
+- ✅ Full Whisper model support
+- ✅ Metal GPU acceleration
+- ✅ All core features
+- ❌ No Parakeet models (requires Apple Neural Engine)
+
+**Apple Silicon Macs (M1/M2/M3+)**:
+- ✅ All Whisper models with Metal
+- ✅ Exclusive Parakeet model support (Apple Neural Engine)
+- ✅ Better performance and battery efficiency
+
+**Performance**: Apple Silicon is 2-5x faster with better battery life, but Intel Macs work great with Whisper models.
+</Accordion>
+
+<Accordion title="Can I use VoiceTypr on Windows with AMD or Intel GPUs?">
+Yes! VoiceTypr for Windows supports **all Vulkan-compatible GPUs**:
+
+**Supported GPUs**:
+- ✅ **NVIDIA**: GeForce GTX 900+ (Vulkan 1.0+)
+- ✅ **AMD**: Radeon RX 400+ (Vulkan 1.0+)
+- ✅ **Intel**: Arc, Iris Xe, UHD Graphics 600+ (Vulkan 1.0+)
+
+**Performance boost**: 5-10x faster transcription with GPU acceleration
+
+**Requirements**:
+- Up-to-date graphics drivers (includes Vulkan Runtime)
+- 1+ GB VRAM
+
+**Automatic fallback**: If GPU is unavailable, VoiceTypr uses CPU mode automatically.
+
+See [Windows Platform Guide](/platforms/windows) for driver update links.
+</Accordion>
+
+---
+
+## Features & Usage
+
+<Accordion title="How many languages does VoiceTypr support?">
+VoiceTypr supports **99+ languages** out of the box through Whisper models:
+
+- **Auto-detect**: Automatically identifies the spoken language
+- **Manual selection**: Force a specific language for better accuracy
+- **Multilingual**: Switch between languages without restarting
+
+**Popular languages include**:
+English, Spanish, French, German, Italian, Portuguese, Dutch, Russian, Chinese (Mandarin), Japanese, Korean, Arabic, Hindi, and many more.
+
+**How it works**:
+1. Speak in any supported language
+2. Whisper automatically detects the language
+3. Transcription appears in the original language
+
+**Note**: Language detection is more accurate with larger models (Small, Medium, Large).
+</Accordion>
+
+<Accordion title="What AI models are available?">
+**Whisper Models** (All platforms):
+
+| Model | Size | Speed | Accuracy | Best For |
+|-------|------|-------|----------|----------|
+| **Tiny** | 75 MB | Fastest | Lower | Quick notes, fast systems |
+| **Base** | 142 MB | Fast | Good | Balanced performance |
+| **Small** | 466 MB | Moderate | High | **Recommended for most users** |
+| **Medium** | 1.5 GB | Slow | Very High | High accuracy needs |
+| **Large** | 2.9 GB | Slowest | Highest | Professional use, best quality |
+
+**Parakeet Models** (macOS Apple Silicon only):
+
+| Model | Size | Speed | Accuracy | Engine |
+|-------|------|-------|----------|--------|
+| **Parakeet TDT 0.6B v3** | 500 MB | Real-time | High | Apple Neural Engine |
+
+**Choosing a model**:
+- **Speed**: Use Tiny or Base
+- **Accuracy**: Use Medium or Large
+- **Balance**: Use Small (recommended)
+- **Battery efficiency** (Apple Silicon): Use Parakeet
+
+You can download multiple models and switch between them.
+</Accordion>
+
+<Accordion title="What is the difference between Push-to-Talk and Toggle mode?">
+**Push-to-Talk (PTT)**:
+- **Hold** your hotkey to record
+- **Release** hotkey to stop and transcribe
+- Like a walkie-talkie
+- Minimum duration: 1 second
+- Best for: Quick, controlled recordings
+
+**Toggle Mode**:
+- **Press** hotkey once to start recording
+- **Press** again to stop and transcribe
+- Or press **Esc** twice to cancel
+- Minimum duration: 3 seconds
+- Best for: Longer recordings, hands-free
+
+**Switch modes**:
+- Settings → General → Recording Mode
+- Or menubar/tray → Recording Mode
+
+**Tips**:
+- PTT is more precise for short bursts
+- Toggle is better for lengthy dictation
+- Both modes work in any application
+</Accordion>
+
+<Accordion title="Can VoiceTypr transcribe audio files?">
+Yes! VoiceTypr supports **audio file upload and transcription**:
+
+**Supported formats**:
+- WAV, MP3, M4A, FLAC, OGG, and more
+- Multi-channel audio (up to 4+ channels)
+- Any sample rate (automatically normalized to 16kHz)
+
+**How to use**:
+1. Open VoiceTypr Settings
+2. Navigate to **Upload** section
+3. Drag & drop audio file or click to browse
+4. Wait for transcription
+5. Text appears in the upload section (can copy to clipboard)
+
+**Note**: File transcription does **not** auto-insert text at cursor - you must copy it manually.
+
+**Use cases**:
+- Transcribe meeting recordings
+- Convert voice memos to text
+- Transcribe podcast segments
+- Process existing audio archives
+</Accordion>
+
+<Accordion title="What is AI Enhancement?">
+**AI Enhancement** is an optional feature that improves transcriptions using cloud AI APIs:
+
+**What it does**:
+- Fixes grammar and punctuation errors
+- Removes filler words (um, uh, like)
+- Formats text appropriately
+- Applies custom prompts (email, commit messages, notes)
+
+**Supported providers**:
+- **Groq** (fast, affordable)
+- **Gemini** (Google's AI)
+- **OpenAI** (GPT models)
+- **OpenAI-compatible** endpoints (custom URLs)
+
+**Requirements**:
+- Internet connection
+- API key from provider (you provide your own)
+- Costs based on provider's pricing
+
+**How to enable**:
+1. Settings → AI Enhancement
+2. Choose provider
+3. Enter API key
+4. Select enhancement mode (or create custom prompt)
+5. Enable enhancement toggle
+
+**Privacy**: Your transcriptions are sent to the AI provider for enhancement. If privacy is a concern, **keep AI Enhancement disabled**.
+</Accordion>
+
+---
+
+## Performance & Requirements
+
+<Accordion title="How much disk space do I need?">
+**Minimum**: 3-4 GB free space
+
+**Breakdown**:
+- VoiceTypr app: ~200 MB
+- Single Whisper model: 75 MB to 2.9 GB
+- Parakeet model (macOS): ~500 MB
+- Temporary recording files: ~100 MB
+
+**Recommended**: 5+ GB to have room for multiple models
+
+**Storage locations**:
+- **macOS**: `~/Library/Application Support/com.voicetypr.app/`
+- **Windows**: `%APPDATA%\com.voicetypr.app\`
+
+**Free up space**:
+- Delete unused models (Settings → Models → Remove)
+- Use smaller models (Tiny/Base instead of Large)
+- Reset App Data to clear cache (Settings → Advanced)
+</Accordion>
+
+<Accordion title="Do I need a GPU for VoiceTypr?">
+**No, but it helps significantly.**
+
+**Without GPU** (CPU only):
+- ✅ VoiceTypr works fine
+- ⚠️ Transcription is 1-2x real-time (depends on CPU)
+- ⚠️ Slower with larger models
+- ✅ No special drivers needed
+
+**With GPU**:
+- ✅ 5-10x faster transcription (Windows Vulkan)
+- ✅ 2-5x faster (macOS Metal)
+- ✅ Near real-time with Parakeet (Apple Neural Engine)
+- ⚠️ Requires updated graphics drivers
+
+**GPU requirements**:
+- **macOS**: Any Mac with Metal support (all modern Macs)
+- **Windows**: NVIDIA, AMD, or Intel GPU with Vulkan support
+
+**Bottom line**: VoiceTypr **always works** - GPU just makes it faster.
+</Accordion>
+
+<Accordion title="How fast is transcription?">
+**Speed depends on**:
+1. Platform (macOS vs Windows)
+2. Hardware (GPU vs CPU, Apple Silicon vs Intel)
+3. Model size (Tiny vs Large)
+
+**Approximate speeds**:
+
+**Apple Silicon + Parakeet**: ~1.0x real-time (30s audio = 30s to transcribe)
+
+**macOS Metal GPU**:
+- Tiny/Base: 5-10x real-time (30s audio = 3-6s)
+- Small/Medium: 2-5x real-time (30s audio = 6-15s)
+- Large: 1-2x real-time (30s audio = 15-30s)
+
+**Windows Vulkan GPU**:
+- Tiny/Base: 8-12x real-time (30s audio = 2-4s)
+- Small/Medium: 4-8x real-time (30s audio = 4-8s)
+- Large: 2-4x real-time (30s audio = 8-15s)
+
+**CPU only** (no GPU):
+- Tiny/Base: 1-3x real-time
+- Small/Medium: 0.5-1.5x real-time (slower than real-time)
+- Large: 0.2-0.5x real-time (very slow)
+
+**Recommendation**: For best experience, use Small model with GPU acceleration.
+</Accordion>
+
+<Accordion title="Does VoiceTypr drain my battery?">
+**Battery impact varies by platform and usage**:
+
+**macOS Apple Silicon + Parakeet**:
+- ⚡ **Minimal impact** (Apple Neural Engine is ultra-efficient)
+- Comparable to normal typing
+- Best option for laptops
+
+**macOS Intel + Whisper Metal**:
+- ⚠️ **Moderate impact** during active transcription
+- GPU and CPU both active
+- Drains faster than Parakeet
+
+**Windows GPU (Vulkan)**:
+- ⚠️ **Moderate to high impact** during transcription
+- GPU acceleration uses more power than CPU alone
+- Worth it for speed boost
+
+**CPU-only mode**:
+- ⚠️ **High impact** due to sustained CPU usage
+- Slower transcription = longer CPU time = more drain
+
+**Battery saving tips**:
+1. Use Parakeet on Apple Silicon Macs
+2. Use smaller models (Tiny/Base)
+3. Keep recordings short
+4. Disable AI Enhancement (requires internet/API calls)
+5. Quit VoiceTypr when not in use
+</Accordion>
+
+---
+
+## Troubleshooting
+
+<Accordion title="Why is transcription slow?">
+See the [Troubleshooting Guide](/troubleshooting) for detailed solutions on slow transcription.
+
+**Quick fixes**:
+1. **Update graphics drivers** (Windows - most common fix!)
+2. **Use smaller models** (Tiny/Base instead of Large)
+3. **Try Parakeet** (macOS Apple Silicon only)
+4. **Check GPU detection** in logs
+5. **Free up RAM** by closing background apps
+</Accordion>
+
+<Accordion title="Why won't my recording start?">
+See the [Troubleshooting Guide](/troubleshooting) for detailed solutions on recording issues.
+
+**Quick checklist**:
+1. ✅ Microphone permission granted
+2. ✅ At least one model downloaded
+3. ✅ Hotkey not conflicting with other apps
+4. ✅ VoiceTypr running in background (menubar/tray icon visible)
+</Accordion>
+
+<Accordion title="Why is the transcription inaccurate?">
+See the [Troubleshooting Guide](/troubleshooting) for detailed solutions on improving transcription accuracy.
+
+**Quick improvements**:
+1. Use **larger models** (Small, Medium, or Large)
+2. **Reduce background noise**
+3. **Speak clearly** at normal pace
+4. Set **language explicitly** instead of auto-detect
+5. Enable **AI Enhancement** for grammar fixes (requires API key)
+</Accordion>
+
+<Accordion title="Where can I get help?">
+**Documentation**:
+- [Troubleshooting Guide](/troubleshooting) - Common issues and solutions
+- [macOS Platform Guide](/platforms/macos) - macOS-specific help
+- [Windows Platform Guide](/platforms/windows) - Windows-specific help
+
+**Community Support**:
+- [GitHub Discussions](https://github.com/moinulmoin/voicetypr/discussions) - Ask questions
+- [GitHub Issues](https://github.com/moinulmoin/voicetypr/issues) - Report bugs
+
+**Before asking for help**:
+1. Check [Troubleshooting](/troubleshooting) first
+2. Search existing GitHub issues
+3. Collect diagnostic info (Settings → Help → Copy System Info)
+4. Include logs if relevant (Settings → Help → View Logs)
+
+**Response time**: Community-driven project - response times vary. Be patient and provide details!
+</Accordion>
+
+---
+
+## See Also
+
+- [Troubleshooting Guide](/troubleshooting)
+- [macOS Platform Guide](/platforms/macos)
+- [Windows Platform Guide](/platforms/windows)
+- [System Requirements](/guides/system-requirements)
+- [GPU Acceleration](/guides/gpu-acceleration)

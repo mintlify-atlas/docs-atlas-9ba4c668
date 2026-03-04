@@ -1,0 +1,452 @@
+---
+title: AI Enhancement
+description: Transform your transcriptions with AI-powered enhancement using Groq, Gemini, OpenAI, Anthropic, or custom providers.
+---
+
+## Overview
+
+AI Enhancement uses large language models (LLMs) to intelligently post-process your transcriptions, cleaning up grammar, fixing punctuation, and transforming raw voice input into polished, professional text.
+
+<Info>
+  AI Enhancement is **optional** and requires an internet connection. Local transcription always works offline.
+</Info>
+
+## How It Works
+
+<Steps>
+  <Step title="Local Transcription">
+    VoiceTypr transcribes your voice locally using Whisper or Parakeet models.
+  </Step>
+  
+  <Step title="AI Processing">
+    If enhancement is enabled, the raw transcription is sent to your selected AI provider.
+  </Step>
+  
+  <Step title="Smart Enhancement">
+    The LLM applies intelligent corrections:
+    - Grammar and spelling fixes
+    - Punctuation and capitalization
+    - Semantic improvements
+    - Format transformation (based on preset)
+  </Step>
+  
+  <Step title="Automatic Insertion">
+    The enhanced text is automatically inserted at your cursor position.
+  </Step>
+</Steps>
+
+## Supported Providers
+
+VoiceTypr supports multiple AI providers to give you flexibility and choice:
+
+<CardGroup cols={2}>
+  <Card title="OpenAI" icon="robot" color="#10a37f">
+    GPT-4o, GPT-4o Mini, and GPT-4 Turbo models for high-quality enhancement.
+  </Card>
+  <Card title="Google Gemini" icon="sparkles" color="#4285f4">
+    Gemini 2.0 Flash and Gemini 1.5 Flash for fast, accurate processing.
+  </Card>
+  <Card title="Anthropic" icon="message-square" color="#d97757">
+    Claude Sonnet, Haiku, and Opus models (configured via custom provider).
+  </Card>
+  <Card title="Groq" icon="zap" color="#f55036">
+    Ultra-fast inference with Llama and Mixtral models (configured via custom provider).
+  </Card>
+</CardGroup>
+
+### Provider Configuration
+
+Each provider is defined with:
+
+```typescript
+interface AIProviderConfig {
+  id: string;          // Provider identifier
+  name: string;        // Display name
+  color: string;       // UI theme color
+  apiKeyUrl: string;   // Where to get API key
+  isCustom?: boolean;  // OpenAI-compatible custom provider
+}
+```
+
+## Enhancement Presets
+
+VoiceTypr includes four enhancement modes for different use cases:
+
+<Tabs>
+  <Tab title="Default">
+    ### Default Mode
+    
+    Clean, natural text with grammar and punctuation fixes.
+    
+    **What it does:**
+    - Removes fillers and false starts
+    - Fixes grammar, spelling, and punctuation
+    - Normalizes capitalization and spacing
+    - Resolves self-corrections ("last-intent wins")
+    - Handles dictation commands when explicitly said
+    
+    **Example:**
+    
+    Input:
+    ```
+    um so I was thinking we should maybe uh schedule the meeting for 
+    tuesday no wait actually wednesday would be better
+    ```
+    
+    Output:
+    ```
+    I was thinking we should schedule the meeting for Wednesday.
+    ```
+    
+    **Best for:** General dictation, notes, messages
+  </Tab>
+  
+  <Tab title="Prompts">
+    ### Prompts Mode
+    
+    Transform speech into clear, actionable AI prompts.
+    
+    **What it does:**
+    - Classifies as Request, Question, or Task
+    - Adds essential missing context (what/how/why)
+    - Includes constraints and success criteria
+    - Specifies output format when helpful
+    - Preserves all technical details
+    
+    **Example:**
+    
+    Input:
+    ```
+    write a function that sorts an array
+    ```
+    
+    Output:
+    ```
+    Write a JavaScript function that sorts an array of numbers in ascending 
+    order. Return a new sorted array without modifying the original.
+    ```
+    
+    **Best for:** Creating prompts for ChatGPT, Claude, or other AI assistants
+  </Tab>
+  
+  <Tab title="Email">
+    ### Email Mode
+    
+    Format dictation as professional email messages.
+    
+    **What it does:**
+    - Generates specific, action-oriented subject line
+    - Adds appropriate greeting (Hi/Dear/Hello)
+    - Structures body into short paragraphs
+    - Leads with key information or request
+    - Includes action items and deadlines when present
+    - Matches tone (formal/casual) to input
+    - Adds appropriate closing and signature placeholder
+    
+    **Example:**
+    
+    Input:
+    ```
+    hey john just wanted to check if you got those files I sent 
+    yesterday we need them for the meeting on friday
+    ```
+    
+    Output:
+    ```
+    Subject: Following up on files for Friday meeting
+
+    Hi John,
+
+    I wanted to check if you received the files I sent yesterday. 
+    We'll need them for our meeting on Friday.
+
+    Thanks,
+    [Your Name]
+    ```
+    
+    **Best for:** Drafting emails, messages, correspondence
+  </Tab>
+  
+  <Tab title="Commit">
+    ### Commit Mode
+    
+    Generate conventional commit messages for Git.
+    
+    **What it does:**
+    - Converts speech to conventional commit format
+    - Selects appropriate type (feat, fix, docs, etc.)
+    - Uses present tense, no period
+    - Keeps under 72 characters
+    - Adds `!` for breaking changes
+    
+    **Example:**
+    
+    Input:
+    ```
+    I added a new dark mode feature to the settings page
+    ```
+    
+    Output:
+    ```
+    feat(settings): add dark mode toggle
+    ```
+    
+    **Available types:** `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`, `build`, `ci`
+    
+    **Best for:** Creating git commit messages from voice
+  </Tab>
+</Tabs>
+
+### Enhancement Implementation
+
+Enhancement presets are defined in the backend:
+
+```rust
+// src-tauri/src/ai/prompts.rs:103
+pub enum EnhancementPreset {
+    Default,
+    Prompts,
+    Email,
+    Commit,
+}
+
+pub struct EnhancementOptions {
+    pub preset: EnhancementPreset,
+}
+```
+
+Each preset combines a base prompt (with grammar/semantic fixes) with a mode-specific transformation layer.
+
+## Setting Up AI Enhancement
+
+<Steps>
+  <Step title="Navigate to Enhancements">
+    Open VoiceTypr and go to the **Enhancements** tab.
+  </Step>
+  
+  <Step title="Choose a Provider">
+    Browse available providers:
+    - OpenAI
+    - Google Gemini
+    - Custom (OpenAI-compatible)
+  </Step>
+  
+  <Step title="Add API Key">
+    Click **Connect** on your chosen provider and enter your API key.
+    
+    <Accordion title="Where to get API keys">
+      - **OpenAI**: [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+      - **Google Gemini**: [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
+      - **Custom**: Depends on your provider (Groq, Anthropic, etc.)
+    </Accordion>
+  </Step>
+  
+  <Step title="Select a Model">
+    Choose which model to use from your provider's available models.
+  </Step>
+  
+  <Step title="Enable Enhancement">
+    Toggle AI Enhancement **ON** to activate it for all transcriptions.
+  </Step>
+  
+  <Step title="Choose Preset">
+    Select your preferred enhancement preset (Default, Prompts, Email, or Commit).
+  </Step>
+</Steps>
+
+## API Key Management
+
+### Secure Storage
+
+API keys are stored securely using the system keyring:
+
+- **macOS**: Keychain
+- **Windows**: Credential Manager
+
+```typescript
+// API key utilities (src/utils/keyring.ts)
+saveApiKey(keyId: string, apiKey: string)  // Save to system keyring
+getApiKey(keyId: string)                    // Retrieve from keyring  
+removeApiKey(keyId: string)                 // Delete from keyring
+hasApiKey(keyId: string)                    // Check if key exists
+```
+
+<Warning>
+  Never commit API keys to version control or share them publicly. VoiceTypr stores them securely in your system's credential store.
+</Warning>
+
+### Managing Keys
+
+You can update or remove API keys at any time:
+
+- **Update**: Click "Update Key" on a connected provider
+- **Remove**: Click "Disconnect" to remove the API key
+
+## Custom Provider (OpenAI-Compatible)
+
+The Custom provider option allows you to use any OpenAI-compatible API:
+
+<Tabs>
+  <Tab title="Groq">
+    **Groq** provides ultra-fast inference with open source models.
+    
+    **Configuration:**
+    - Base URL: `https://api.groq.com/openai/v1`
+    - API Key: Get from [console.groq.com](https://console.groq.com)
+    - Models: `llama-3.3-70b-versatile`, `mixtral-8x7b-32768`, etc.
+    
+    **Benefits:**
+    - Extremely fast inference (~500 tokens/sec)
+    - Cost-effective
+    - Open source models
+  </Tab>
+  
+  <Tab title="Anthropic">
+    **Anthropic Claude** via OpenAI-compatible endpoint.
+    
+    **Configuration:**
+    - Base URL: Varies by integration (use proxy or wrapper)
+    - API Key: Your Anthropic API key
+    - Models: `claude-3-5-sonnet`, `claude-3-haiku`, etc.
+    
+    <Note>
+      Anthropic doesn't natively support OpenAI format. Use a proxy service or wait for native Anthropic support in a future update.
+    </Note>
+  </Tab>
+  
+  <Tab title="Local LLMs">
+    **Local LLM servers** like LM Studio, Ollama, or text-generation-webui.
+    
+    **Configuration:**
+    - Base URL: `http://localhost:1234/v1` (or your server's URL)
+    - API Key: Usually not required (use dummy value)
+    - Models: Depends on what you have loaded
+    
+    **Benefits:**
+    - 100% private and offline (after transcription)
+    - No API costs
+    - Full control over models
+  </Tab>
+</Tabs>
+
+### Custom Configuration
+
+```typescript
+// OpenAI-compatible config
+interface OpenAIConfig {
+  baseUrl: string;  // API endpoint
+}
+
+// Example: Groq configuration
+await invoke('save_openai_config', {
+  args: {
+    baseUrl: 'https://api.groq.com/openai/v1'
+  }
+});
+```
+
+## Language Support
+
+AI Enhancement respects your selected transcription language:
+
+```typescript
+language: 'en'  // ISO 639-1 code
+```
+
+The enhancement prompt automatically adapts to output in the correct language:
+
+```rust
+// src-tauri/src/ai/prompts.rs:97
+fn build_base_prompt(language: Option<&str>) -> String {
+    let lang_name = language.map(get_language_name).unwrap_or("English");
+    BASE_PROMPT_TEMPLATE.replace("{language}", lang_name)
+}
+```
+
+Supported languages include English, Spanish, French, German, Japanese, Chinese, and 80+ more.
+
+## Troubleshooting
+
+### Authentication Errors
+
+If you see "AI authentication error":
+
+1. Verify your API key is correct
+2. Check the API key has sufficient credits/quota
+3. Update or re-enter the API key in Enhancements tab
+4. Ensure your API key has the necessary permissions
+
+### Enhancement Errors
+
+If enhancement fails:
+
+1. Check your internet connection
+2. Verify the selected model is available
+3. Try a different model or provider
+4. Check provider status page for outages
+
+### Slow Enhancement
+
+If enhancement takes too long:
+
+- Try a faster model (e.g., GPT-4o Mini, Gemini Flash)
+- Use Groq for ultra-fast inference
+- Switch to a smaller enhancement preset
+- Check your network latency
+
+### Unexpected Output
+
+If enhanced text doesn't match expectations:
+
+- Try a different enhancement preset
+- Speak more clearly and with better grammar
+- Use a different AI model
+- Disable enhancement and use raw transcription
+
+## Privacy Considerations
+
+<Warning>
+  When AI Enhancement is enabled, your transcribed text is sent to the selected AI provider over the internet. Your **voice audio** never leaves your device, only the text transcription.
+</Warning>
+
+**What is sent:**
+- Transcribed text only
+- Language setting
+- Enhancement preset selection
+
+**What is NOT sent:**
+- Voice audio recordings
+- Transcription history
+- Personal settings
+
+**Data retention** varies by provider:
+- OpenAI: [30 days via API](https://platform.openai.com/docs/models/how-we-use-your-data)
+- Google: Check [Gemini API terms](https://ai.google.dev/terms)
+- Custom: Depends on your provider
+
+## Best Practices
+
+<Tip>
+  **Tip**: Start with the Default preset and only switch to specialized presets (Email, Commit, Prompts) when you specifically need that format.
+</Tip>
+
+1. **Choose the right preset** for your workflow
+2. **Speak naturally** - the AI handles grammar fixes
+3. **Use faster models** (Flash, Mini) for everyday enhancement
+4. **Use advanced models** (GPT-4o, Gemini Pro) for complex content
+5. **Test different providers** to find the best fit for your needs
+6. **Monitor API costs** if using paid providers
+7. **Keep API keys secure** - never share them
+
+## Cost Considerations
+
+Most AI providers charge per token:
+
+- **OpenAI**: ~$0.15-2.50 per 1M tokens (varies by model)
+- **Google Gemini**: Free tier available, then pay-as-you-go
+- **Groq**: Generous free tier, very cost-effective
+- **Local LLMs**: Free after setup (requires capable hardware)
+
+<Info>
+  A typical voice transcription enhancement uses 100-500 tokens, costing less than $0.01 with most providers.
+</Info>

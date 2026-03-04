@@ -1,0 +1,437 @@
+---
+title: Testing
+description: Testing strategy and commands for VoiceTypr
+---
+
+## Testing Philosophy
+
+VoiceTypr uses a comprehensive testing approach:
+
+- **Frontend**: User-focused integration tests (Vitest + React Testing Library)
+- **Backend**: Unit tests for business logic (Cargo test)
+- **Quality gates**: Automated checks before commits
+
+### Key Principles
+
+1. **Test behavior, not implementation** - Focus on what users see and do
+2. **Integration over unit** - Test complete user journeys
+3. **Edge cases matter** - Test error conditions and boundary cases
+4. **Fast feedback** - Tests run in seconds, not minutes
+
+## Frontend Tests (Vitest)
+
+### Run Tests
+
+<CodeGroup>
+```bash Run all tests
+pnpm test
+```
+
+```bash Watch mode
+pnpm test:watch
+```
+
+```bash UI mode
+pnpm test:ui
+```
+
+```bash Coverage
+pnpm test:coverage
+```
+</CodeGroup>
+
+### Test Files
+
+```
+src/
+├── test/
+│   ├── App.critical.test.tsx    # Critical user paths
+│   ├── App.user.test.tsx        # Common user scenarios
+│   └── setup.ts                 # Test configuration
+├── components/
+│   └── ui/
+│       └── Button.test.tsx      # Component tests
+└── hooks/
+    └── useRecording.test.ts     # Hook tests
+```
+
+### Example Test
+
+```typescript
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import App from '../App';
+
+test('user can start recording with hotkey', async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  
+  // Simulate hotkey press
+  await user.keyboard('{Meta>}r{/Meta}');
+  
+  // Verify recording started
+  await waitFor(() => {
+    expect(screen.getByText(/recording/i)).toBeInTheDocument();
+  });
+});
+```
+
+### Test Configuration
+
+`vite.config.ts`:
+
+```typescript
+export default defineConfig({
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.ts',
+  },
+});
+```
+
+## Backend Tests (Cargo)
+
+### Run Tests
+
+<CodeGroup>
+```bash All tests
+pnpm test:backend
+```
+
+```bash Direct cargo
+cd src-tauri && cargo test
+```
+
+```bash Specific test
+cd src-tauri && cargo test test_audio_recording
+```
+
+```bash With output
+cd src-tauri && cargo test -- --nocapture
+```
+</CodeGroup>
+
+### Test Files
+
+```
+src-tauri/src/
+├── tests/
+│   ├── audio_tests.rs
+│   ├── whisper_tests.rs
+│   ├── state_tests.rs
+│   └── integration_tests.rs
+├── audio/
+│   └── recorder.rs              # Inline unit tests
+└── whisper/
+    └── engine.rs                # Inline unit tests
+```
+
+### Example Test
+
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tokio_test::*;
+
+    #[tokio::test]
+    async fn test_audio_recording() {
+        let recorder = AudioRecorder::new();
+        recorder.start().await.unwrap();
+        
+        tokio::time::sleep(Duration::from_secs(1)).await;
+        
+        let audio = recorder.stop().await.unwrap();
+        assert!(audio.len() > 0);
+    }
+
+    #[test]
+    fn test_sample_rate_conversion() {
+        let input = vec![0.0; 16000];
+        let output = convert_sample_rate(&input, 16000, 48000);
+        assert_eq!(output.len(), 48000);
+    }
+}
+```
+
+### Test Dependencies
+
+`Cargo.toml`:
+
+```toml
+[dev-dependencies]
+tempfile = "3.10"
+tokio-test = "0.4"
+mockall = "0.12"
+serial_test = "3.0"
+rand = "0.8"
+```
+
+## Quality Gate Checks
+
+### Run All Checks
+
+```bash
+pnpm quality-gate
+```
+
+This script runs:
+
+1. **Type checking** (`pnpm typecheck`)
+2. **Linting** (`pnpm lint`)
+3. **Frontend tests** (`pnpm test run`)
+4. **Backend tests** (`pnpm test:backend`)
+
+### Individual Checks
+
+<CodeGroup>
+```bash Type check
+pnpm typecheck
+```
+
+```bash Lint
+pnpm lint
+```
+
+```bash Format
+pnpm format
+```
+
+```bash All tests
+pnpm test:all
+```
+</CodeGroup>
+
+### Quality Gate Script
+
+`scripts/quality-gate-check.sh`:
+
+```bash
+#!/bin/bash
+set -e
+
+echo "[1/4] Type checking..."
+pnpm typecheck
+
+echo "[2/4] Linting..."
+pnpm lint
+
+echo "[3/4] Frontend tests..."
+pnpm test run
+
+echo "[4/4] Backend tests..."
+pnpm test:backend
+
+echo "✓ All quality checks passed!"
+```
+
+## Coverage
+
+### Frontend Coverage
+
+```bash
+pnpm test:coverage
+```
+
+**Output**:
+- Terminal summary
+- HTML report in `coverage/`
+
+**Coverage targets**:
+- Statements: >80%
+- Branches: >75%
+- Functions: >80%
+- Lines: >80%
+
+### Backend Coverage
+
+```bash
+cd src-tauri
+cargo tarpaulin --out Html
+```
+
+**Requirements**:
+```bash
+cargo install cargo-tarpaulin
+```
+
+## Testing Patterns
+
+### Frontend Testing
+
+#### User-Focused Tests
+
+```typescript
+// ✅ Good - Test user behavior
+test('user can download a model', async () => {
+  render(<ModelsTab />);
+  await user.click(screen.getByText(/download base/i));
+  expect(await screen.findByText(/downloading/i)).toBeInTheDocument();
+});
+
+// ❌ Bad - Test implementation
+test('downloadModel function is called', () => {
+  const spy = vi.spyOn(api, 'downloadModel');
+  // Testing internal implementation
+});
+```
+
+#### Async Operations
+
+```typescript
+import { waitFor } from '@testing-library/react';
+
+test('transcription completes', async () => {
+  render(<App />);
+  
+  // Trigger transcription
+  await user.click(screen.getByRole('button', { name: /record/i }));
+  
+  // Wait for async completion
+  await waitFor(() => {
+    expect(screen.getByText(/transcription complete/i)).toBeInTheDocument();
+  }, { timeout: 5000 });
+});
+```
+
+### Backend Testing
+
+#### Async Tests
+
+```rust
+#[tokio::test]
+async fn test_model_download() {
+    let downloader = ModelDownloader::new();
+    let result = downloader.download("base").await;
+    assert!(result.is_ok());
+}
+```
+
+#### Mocking
+
+```rust
+use mockall::predicate::*;
+use mockall::mock;
+
+mock! {
+    pub WhisperEngine {}
+    
+    impl WhisperEngine {
+        async fn transcribe(&self, audio: Vec<f32>) -> Result<String, Error>;
+    }
+}
+
+#[tokio::test]
+async fn test_transcription_flow() {
+    let mut mock = MockWhisperEngine::new();
+    mock.expect_transcribe()
+        .returning(|_| Ok("Hello world".to_string()));
+    
+    let result = mock.transcribe(vec![]).await;
+    assert_eq!(result.unwrap(), "Hello world");
+}
+```
+
+#### Serial Tests
+
+```rust
+use serial_test::serial;
+
+#[test]
+#[serial]
+fn test_file_access() {
+    // Tests that access shared resources
+    // run serially to avoid conflicts
+}
+```
+
+## Continuous Integration
+
+Tests run automatically on:
+
+- **Pull requests** - All quality checks
+- **Commits to main** - Full test suite
+- **Release builds** - Quality gate + E2E tests
+
+### GitHub Actions
+
+```yaml
+# .github/workflows/test.yml
+name: Tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest]
+    
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Node
+        uses: actions/setup-node@v3
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+      - name: Install dependencies
+        run: pnpm install
+      - name: Run quality gate
+        run: pnpm quality-gate
+```
+
+## Benchmarking
+
+Performance benchmarks for critical paths:
+
+```bash
+pnpm benchmark
+```
+
+**Benchmarks**:
+- Audio recording latency
+- Transcription speed (by model size)
+- Model loading time
+- Memory usage
+
+## Troubleshooting
+
+### Tests Timeout
+
+Increase timeout in Vitest:
+
+```typescript
+test('slow operation', async () => {
+  // ...
+}, { timeout: 10000 }); // 10 seconds
+```
+
+### Backend Tests Fail to Compile
+
+Ensure dev dependencies are installed:
+
+```bash
+cd src-tauri
+cargo build --tests
+```
+
+### Mock Tauri API in Tests
+
+Use `@tauri-apps/api-mock`:
+
+```typescript
+import { mockIPC } from '@tauri-apps/api/mocks';
+
+mockIPC((cmd, args) => {
+  if (cmd === 'start_recording') {
+    return Promise.resolve();
+  }
+});
+```
+
+## Next Steps
+
+- Follow [code style](/development/code-style) when writing tests
+- Review [contributing guide](/development/contributing) for PR requirements
+- Check [architecture](/development/architecture) for testable patterns

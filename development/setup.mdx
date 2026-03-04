@@ -1,0 +1,180 @@
+---
+title: Development Setup
+description: Get your local development environment ready for VoiceTypr
+---
+
+## Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+<Steps>
+  <Step title="Node.js and pnpm">
+    Install Node.js 18+ and pnpm 10.13.1+
+    
+    ```bash
+    # Check versions
+    node --version
+    pnpm --version
+    
+    # Install pnpm if needed
+    npm install -g pnpm
+    ```
+  </Step>
+
+  <Step title="Rust">
+    Install Rust 1.70+ via rustup
+    
+    ```bash
+    # Install rustup
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    
+    # Verify installation
+    rustc --version
+    cargo --version
+    ```
+  </Step>
+
+  <Step title="Platform-Specific Dependencies">
+    ### macOS
+    - Xcode Command Line Tools
+    - Swift 5.9+ (for Parakeet sidecar)
+    
+    ```bash
+    xcode-select --install
+    swift --version
+    ```
+    
+    ### Windows
+    - Visual Studio 2019+ with C++ build tools
+    - WebView2 (usually pre-installed on Windows 10/11)
+  </Step>
+</Steps>
+
+## Clone Repository
+
+Clone the VoiceTypr repository and navigate to the project directory:
+
+```bash
+git clone https://github.com/moinulmoin/voicetypr.git
+cd voicetypr
+```
+
+## Install Dependencies
+
+Install frontend and backend dependencies:
+
+<Steps>
+  <Step title="Install Frontend Dependencies">
+    ```bash
+    pnpm install
+    ```
+    
+    This installs all npm packages including React, Tauri, and development tools.
+  </Step>
+
+  <Step title="Build Rust Dependencies">
+    ```bash
+    cd src-tauri
+    cargo build
+    cd ..
+    ```
+    
+    First build downloads and compiles all Rust crates. This may take 5-10 minutes.
+  </Step>
+
+  <Step title="Setup FFmpeg Sidecars (macOS)">
+    ```bash
+    pnpm sidecar:ensure-ffmpeg
+    ```
+    
+    Downloads platform-specific FFmpeg binaries required for audio processing.
+  </Step>
+</Steps>
+
+## Development Environment
+
+### Editor Setup
+
+We recommend **VS Code** with the following extensions:
+
+- **rust-analyzer** - Rust language support
+- **Tauri** - Tauri development tools
+- **ESLint** - JavaScript/TypeScript linting
+- **Prettier** - Code formatting
+- **Tailwind CSS IntelliSense** - Tailwind autocomplete
+
+### Environment Variables
+
+Create a `.env` file in the project root (optional):
+
+```bash
+# Optional: Enable Rust backtrace
+RUST_BACKTRACE=1
+
+# Optional: Enable verbose logging
+RUST_LOG=debug
+```
+
+### Verify Installation
+
+Run the development server to verify everything works:
+
+```bash
+pnpm tauri dev
+```
+
+The app should launch with:
+- Frontend hot-reload on port 1420
+- Rust backend with debug logging
+- Working system tray icon
+
+## Troubleshooting
+
+### FFmpeg Missing
+
+If you see FFmpeg errors:
+
+```bash
+pnpm sidecar:ensure-ffmpeg
+```
+
+### Rust Build Fails
+
+Clear Cargo cache and rebuild:
+
+```bash
+cd src-tauri
+cargo clean
+cargo build
+```
+
+### Port 1420 Already in Use
+
+Kill the process using the port:
+
+```bash
+# macOS/Linux
+lsof -ti:1420 | xargs kill
+
+# Windows
+netstat -ano | findstr :1420
+taskkill /PID <PID> /F
+```
+
+### Swift Sidecar Build Fails (macOS)
+
+Ensure Swift toolchain is properly installed:
+
+```bash
+swift --version
+xcode-select --install
+```
+
+## Next Steps
+
+Now that your environment is set up:
+
+- Learn about the [architecture](/development/architecture)
+- Start [building](/development/building) the app
+- Run [tests](/development/testing)
+- Check the [code style guide](/development/code-style)
